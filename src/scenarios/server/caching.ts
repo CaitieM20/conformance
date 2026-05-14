@@ -282,8 +282,7 @@ Servers MUST include \`ttlMs\` (integer >= 0) and \`cacheScope\` ("public" or "p
         description: 'All ttlMs values are non-negative integers',
         status: ttlErrors.length === 0 ? 'SUCCESS' : 'FAILURE',
         timestamp: new Date().toISOString(),
-        errorMessage:
-          ttlErrors.length > 0 ? ttlErrors.join('; ') : undefined,
+        errorMessage: ttlErrors.length > 0 ? ttlErrors.join('; ') : undefined,
         specReferences: SPEC_REFS,
         details: {
           endpoints: allFields.map((f) => ({

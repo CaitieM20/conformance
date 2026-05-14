@@ -1037,54 +1037,49 @@ function createMcpServer() {
 
   // ===== SEP-2549: Override list/read handlers to include caching hints =====
 
-  mcpServer.server.setRequestHandler(
-    ListPromptsRequestSchema,
-    async () => {
-      const registeredPrompts = (mcpServer as any)._registeredPrompts as Record<
-        string,
-        {
-          enabled: boolean;
-          title?: string;
-          description?: string;
-          argsSchema?: any;
-        }
-      >;
+  mcpServer.server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    const registeredPrompts = (mcpServer as any)._registeredPrompts as Record<
+      string,
+      {
+        enabled: boolean;
+        title?: string;
+        description?: string;
+        argsSchema?: any;
+      }
+    >;
 
-      return {
-        prompts: Object.entries(registeredPrompts)
-          .filter(([, prompt]) => prompt.enabled)
-          .map(([name, prompt]) => ({
-            name,
-            title: prompt.title,
-            description: prompt.description
-          })),
-        ttlMs: 300000,
-        cacheScope: 'public' as const
-      };
-    }
-  );
+    return {
+      prompts: Object.entries(registeredPrompts)
+        .filter(([, prompt]) => prompt.enabled)
+        .map(([name, prompt]) => ({
+          name,
+          title: prompt.title,
+          description: prompt.description
+        })),
+      ttlMs: 300000,
+      cacheScope: 'public' as const
+    };
+  });
 
-  mcpServer.server.setRequestHandler(
-    ListResourcesRequestSchema,
-    async () => {
-      const registeredResources = (mcpServer as any)._registeredResources as Record<
-        string,
-        { enabled: boolean; name: string; metadata?: any }
-      >;
+  mcpServer.server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    const registeredResources = (mcpServer as any)
+      ._registeredResources as Record<
+      string,
+      { enabled: boolean; name: string; metadata?: any }
+    >;
 
-      return {
-        resources: Object.entries(registeredResources)
-          .filter(([, res]) => res.enabled)
-          .map(([uri, res]) => ({
-            uri,
-            name: res.name,
-            ...res.metadata
-          })),
-        ttlMs: 300000,
-        cacheScope: 'public' as const
-      };
-    }
-  );
+    return {
+      resources: Object.entries(registeredResources)
+        .filter(([, res]) => res.enabled)
+        .map(([uri, res]) => ({
+          uri,
+          name: res.name,
+          ...res.metadata
+        })),
+      ttlMs: 300000,
+      cacheScope: 'public' as const
+    };
+  });
 
   mcpServer.server.setRequestHandler(
     ListResourceTemplatesRequestSchema,
@@ -1113,16 +1108,24 @@ function createMcpServer() {
     ReadResourceRequestSchema,
     async (request: any) => {
       const uri = new URL(request.params.uri);
-      const registeredResources = (mcpServer as any)._registeredResources as Record<
+      const registeredResources = (mcpServer as any)
+        ._registeredResources as Record<
         string,
-        { enabled: boolean; readCallback: (uri: URL, extra?: any) => Promise<any> }
+        {
+          enabled: boolean;
+          readCallback: (uri: URL, extra?: any) => Promise<any>;
+        }
       >;
       const registeredResourceTemplates = (mcpServer as any)
         ._registeredResourceTemplates as Record<
         string,
         {
           resourceTemplate: any;
-          readCallback: (uri: URL, variables: Record<string, string>, extra?: any) => Promise<any>;
+          readCallback: (
+            uri: URL,
+            variables: Record<string, string>,
+            extra?: any
+          ) => Promise<any>;
         }
       >;
 
