@@ -1,4 +1,14 @@
-import { Scenario, ClientScenario, SpecVersion } from '../types';
+import {
+  Scenario,
+  ClientScenario,
+  ClientScenarioForAuthorizationServer,
+  ScenarioSource,
+  SpecVersion,
+  DatedSpecVersion,
+  ScenarioSpecTag,
+  DATED_SPEC_VERSIONS,
+  DRAFT_PROTOCOL_VERSION
+} from '../types';
 import { InitializeScenario } from './client/initialize';
 import { ToolsCallScenario } from './client/tools_call';
 import { ElicitationClientDefaultsScenario } from './client/elicitation-defaults';
@@ -40,7 +50,8 @@ import {
   ResourcesReadBinaryScenario,
   ResourcesTemplateReadScenario,
   ResourcesSubscribeScenario,
-  ResourcesUnsubscribeScenario
+  ResourcesUnsubscribeScenario,
+  ResourcesNotFoundErrorScenario
 } from './server/resources';
 
 import {
@@ -74,9 +85,11 @@ import {
 import {
   authScenariosList,
   backcompatScenariosList,
+  draftScenariosList,
   extensionScenariosList
 } from './client/auth/index';
 import { listMetadataScenarios } from './client/auth/discovery-metadata';
+import { AuthorizationServerMetadataEndpointScenario } from './authorization-server/authorization-server-metadata';
 
 // Pending client scenarios (not yet fully tested/implemented)
 const pendingClientScenariosList: ClientScenario[] = [
@@ -149,6 +162,9 @@ const allClientScenariosList: ClientScenario[] = [
   new ResourcesSubscribeScenario(),
   new ResourcesUnsubscribeScenario(),
 
+  // Resources error handling (SEP-2164)
+  new ResourcesNotFoundErrorScenario(),
+
   // Prompts scenarios
   new PromptsListScenario(),
   new PromptsGetSimpleScenario(),
@@ -189,6 +205,23 @@ export const clientScenarios = new Map<string, ClientScenario>(
   allClientScenariosList.map((scenario) => [scenario.name, scenario])
 );
 
+// All client scenarios for authorization server
+const allClientScenariosListForAuthorizationServer: ClientScenario[] = [
+  // Authorization server scenarios
+  new AuthorizationServerMetadataEndpointScenario()
+];
+
+// Client scenarios map for authorization server - built from list
+export const clientScenariosForAuthorizationServer = new Map<
+  string,
+  ClientScenario
+>(
+  allClientScenariosListForAuthorizationServer.map((scenario) => [
+    scenario.name,
+    scenario
+  ])
+);
+
 // All client test scenarios (core + backcompat + extensions)
 const scenariosList: Scenario[] = [
   new InitializeScenario(),
@@ -197,6 +230,7 @@ const scenariosList: Scenario[] = [
   new SSERetryScenario(),
   ...authScenariosList,
   ...backcompatScenariosList,
+  ...draftScenariosList,
   ...extensionScenariosList
 ];
 
@@ -224,6 +258,12 @@ export function getScenario(name: string): Scenario | undefined {
 
 export function getClientScenario(name: string): ClientScenario | undefined {
   return clientScenarios.get(name);
+}
+
+export function getClientScenarioForAuthorizationServer(
+  name: string
+): ClientScenarioForAuthorizationServer | undefined {
+  return clientScenariosForAuthorizationServer.get(name);
 }
 
 export function listScenarios(): string[] {
@@ -258,35 +298,89 @@ export function listBackcompatScenarios(): string[] {
   return backcompatScenariosList.map((scenario) => scenario.name);
 }
 
+export function listClientScenariosForAuthorizationServer(): string[] {
+  return Array.from(clientScenariosForAuthorizationServer.keys());
+}
+
+export function listDraftScenarios(): string[] {
+  return draftScenariosList.map((scenario) => scenario.name);
+}
+
 export { listMetadataScenarios };
 
 // All valid spec versions, used by the CLI to validate --spec-version input.
+// 'extension' is intentionally excluded — extension scenarios are off-timeline
+// and selected via `--suite extensions`, not `--spec-version`.
 export const ALL_SPEC_VERSIONS: SpecVersion[] = [
-  '2025-03-26',
-  '2025-06-18',
-  '2025-11-25',
-  'draft',
-  'extension'
+  ...DATED_SPEC_VERSIONS,
+  DRAFT_PROTOCOL_VERSION
 ];
+
+export function resolveSpecVersion(value: string): SpecVersion {
+  if (value === 'draft') return DRAFT_PROTOCOL_VERSION;
+  if (ALL_SPEC_VERSIONS.includes(value as SpecVersion)) {
+    return value as SpecVersion;
+  }
+  console.error(`Unknown spec version: ${value}`);
+  console.error(
+    `Valid versions: ${ALL_SPEC_VERSIONS.join(', ')} (or 'draft' as an alias for ${DRAFT_PROTOCOL_VERSION})`
+  );
+  process.exit(1);
+}
+
+function versionIndex(
+  v: DatedSpecVersion | typeof DRAFT_PROTOCOL_VERSION
+): number {
+  return ALL_SPEC_VERSIONS.indexOf(v);
+}
+
+// Off-timeline sources (extensions etc.) are never selected by --spec-version.
+function matchesSpecVersion(
+  source: ScenarioSource,
+  version: SpecVersion
+): boolean {
+  if ('extensionId' in source) return false;
+  return (
+    versionIndex(source.introducedIn) <= versionIndex(version) &&
+    (source.removedIn === undefined ||
+      versionIndex(version) < versionIndex(source.removedIn))
+  );
+}
 
 export function listScenariosForSpec(version: SpecVersion): string[] {
   return scenariosList
-    .filter((s) => s.specVersions.includes(version))
+    .filter((s) => matchesSpecVersion(s.source, version))
     .map((s) => s.name);
 }
 
 export function listClientScenariosForSpec(version: SpecVersion): string[] {
   return allClientScenariosList
-    .filter((s) => s.specVersions.includes(version))
+    .filter((s) => matchesSpecVersion(s.source, version))
+    .map((s) => s.name);
+}
+
+export function listClientScenariosForAuthorizationServerForSpec(
+  version: SpecVersion
+): string[] {
+  return allClientScenariosListForAuthorizationServer
+    .filter((s) => matchesSpecVersion(s.source, version))
     .map((s) => s.name);
 }
 
 export function getScenarioSpecVersions(
   name: string
-): SpecVersion[] | undefined {
-  return (
-    scenarios.get(name)?.specVersions ?? clientScenarios.get(name)?.specVersions
-  );
+): ScenarioSpecTag[] | undefined {
+  const s =
+    scenarios.get(name) ??
+    clientScenarios.get(name) ??
+    clientScenariosForAuthorizationServer.get(name);
+  if (!s) return undefined;
+  if ('extensionId' in s.source) return ['extension'];
+  const result: ScenarioSpecTag[] = [];
+  for (const v of ALL_SPEC_VERSIONS) {
+    if (matchesSpecVersion(s.source, v)) result.push(v);
+  }
+  return result;
 }
 
-export type { SpecVersion };
+export type { SpecVersion, ScenarioSpecTag };

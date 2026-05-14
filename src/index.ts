@@ -11,6 +11,10 @@ import {
   runInteractiveMode
 } from './runner';
 import {
+  printAuthorizationServerSummary,
+  runAuthorizationServerConformanceTest
+} from './runner/authorization-server';
+import {
   listScenarios,
   listClientScenarios,
   listActiveClientScenarios,
@@ -20,30 +24,29 @@ import {
   listCoreScenarios,
   listExtensionScenarios,
   listBackcompatScenarios,
+  listDraftScenarios,
   listScenariosForSpec,
   listClientScenariosForSpec,
   getScenarioSpecVersions,
-  ALL_SPEC_VERSIONS
+  listClientScenariosForAuthorizationServer,
+  listClientScenariosForAuthorizationServerForSpec,
+  resolveSpecVersion
 } from './scenarios';
 import type { SpecVersion } from './scenarios';
 import { ConformanceCheck } from './types';
-import { ClientOptionsSchema, ServerOptionsSchema } from './schemas';
+import {
+  AuthorizationServerOptionsSchema,
+  ClientOptionsSchema,
+  ServerOptionsSchema
+} from './schemas';
 import {
   loadExpectedFailures,
   evaluateBaseline,
   printBaselineResults
 } from './expected-failures';
 import { createTierCheckCommand } from './tier-check';
+import { createNewSepCommand } from './new-sep';
 import packageJson from '../package.json';
-
-function resolveSpecVersion(value: string): SpecVersion {
-  if (ALL_SPEC_VERSIONS.includes(value as SpecVersion)) {
-    return value as SpecVersion;
-  }
-  console.error(`Unknown spec version: ${value}`);
-  console.error(`Valid versions: ${ALL_SPEC_VERSIONS.join(', ')}`);
-  process.exit(1);
-}
 
 // Note on naming: `command` refers to which CLI command is calling this.
 // The `client` command tests Scenario objects (which test clients),
@@ -52,12 +55,19 @@ function resolveSpecVersion(value: string): SpecVersion {
 function filterScenariosBySpecVersion(
   allScenarios: string[],
   version: SpecVersion,
-  command: 'client' | 'server'
+  command: 'client' | 'server' | 'authorization'
 ): string[] {
-  const versionScenarios =
-    command === 'client'
-      ? listScenariosForSpec(version)
-      : listClientScenariosForSpec(version);
+  let versionScenarios: string[];
+  if (command === 'client') {
+    versionScenarios = listScenariosForSpec(version);
+  } else if (command === 'server') {
+    versionScenarios = listClientScenariosForSpec(version);
+  } else if (command === 'authorization') {
+    versionScenarios =
+      listClientScenariosForAuthorizationServerForSpec(version);
+  } else {
+    versionScenarios = [];
+  }
   const allowed = new Set(versionScenarios);
   return allScenarios.filter((s) => allowed.has(s));
 }
@@ -112,6 +122,7 @@ program
           backcompat: listBackcompatScenarios,
           auth: listAuthScenarios,
           metadata: listMetadataScenarios,
+          draft: listDraftScenarios,
           'sep-835': () =>
             listAuthScenarios().filter((name) => name.startsWith('auth/scope-'))
         };
@@ -142,7 +153,8 @@ program
                 options.command,
                 scenarioName,
                 timeout,
-                outputDir
+                outputDir,
+                specVersionFilter
               );
               return {
                 scenario: scenarioName,
@@ -230,7 +242,7 @@ program
         console.error('\nAvailable client scenarios:');
         listScenarios().forEach((s) => console.error(`  - ${s}`));
         console.error(
-          '\nAvailable suites: all, core, extensions, backcompat, auth, metadata, sep-835'
+          '\nAvailable suites: all, core, extensions, backcompat, auth, metadata, draft, sep-835'
         );
         process.exit(1);
       }
@@ -249,7 +261,8 @@ program
         validated.command,
         validated.scenario,
         timeout,
-        outputDir
+        outputDir,
+        specVersionFilter
       );
 
       const { overallFailure } = printClientResults(
@@ -276,7 +289,7 @@ program
     } catch (error) {
       if (error instanceof ZodError) {
         console.error('Validation error:');
-        error.errors.forEach((err) => {
+        error.issues.forEach((err) => {
           console.error(`  ${err.path.join('.')}: ${err.message}`);
         });
         console.error('\nAvailable client scenarios:');
@@ -432,7 +445,7 @@ program
     } catch (error) {
       if (error instanceof ZodError) {
         console.error('Validation error:');
-        error.errors.forEach((err) => {
+        error.issues.forEach((err) => {
           console.error(`  ${err.path.join('.')}: ${err.message}`);
         });
         console.error('\nAvailable server scenarios:');
@@ -444,8 +457,92 @@ program
     }
   });
 
+// Authorization command - tests an authorization server implementation
+program
+  .command('authorization')
+  .description(
+    'Run conformance tests against an authorization server implementation'
+  )
+  .requiredOption('--url <url>', 'URL of the authorization server issuer')
+  .option('-o, --output-dir <path>', 'Save results to this directory')
+  .option(
+    '--spec-version <version>',
+    'Filter scenarios by spec version (cumulative for date versions)'
+  )
+  .action(async (options) => {
+    try {
+      // Validate options with Zod
+      const validated = AuthorizationServerOptionsSchema.parse(options);
+      const outputDir = options.outputDir;
+      const specVersionFilter = options.specVersion
+        ? resolveSpecVersion(options.specVersion)
+        : undefined;
+
+      let scenarios: string[];
+      scenarios = listClientScenariosForAuthorizationServer();
+      if (specVersionFilter) {
+        scenarios = filterScenariosBySpecVersion(
+          scenarios,
+          specVersionFilter,
+          'authorization'
+        );
+      }
+      console.log(
+        `Running test (${scenarios.length} scenarios) against ${validated.url}\n`
+      );
+
+      const allResults: { scenario: string; checks: ConformanceCheck[] }[] = [];
+      for (const scenarioName of scenarios) {
+        console.log(`\n=== Running scenario: ${scenarioName} ===`);
+        try {
+          const result = await runAuthorizationServerConformanceTest(
+            validated.url,
+            scenarioName,
+            outputDir
+          );
+          allResults.push({ scenario: scenarioName, checks: result.checks });
+        } catch (error) {
+          console.error(`Failed to run scenario ${scenarioName}:`, error);
+          allResults.push({
+            scenario: scenarioName,
+            checks: [
+              {
+                id: scenarioName,
+                name: scenarioName,
+                description: 'Failed to run scenario',
+                status: 'FAILURE',
+                timestamp: new Date().toISOString(),
+                errorMessage:
+                  error instanceof Error ? error.message : String(error)
+              }
+            ]
+          });
+        }
+      }
+      const { totalFailed } = printAuthorizationServerSummary(allResults);
+      process.exit(totalFailed > 0 ? 1 : 0);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        console.error('Validation error:');
+        error.issues.forEach((err) => {
+          console.error(`  ${err.path.join('.')}: ${err.message}`);
+        });
+        console.error('\nAvailable authorization server scenarios:');
+        listClientScenariosForAuthorizationServer().forEach((s) =>
+          console.error(`  - ${s}`)
+        );
+        process.exit(1);
+      }
+      console.error('Authorization server test error:', error);
+      process.exit(1);
+    }
+  });
+
 // Tier check command
 program.addCommand(createTierCheckCommand());
+
+// New SEP scaffolding command
+program.addCommand(createNewSepCommand());
 
 // List scenarios command
 program
@@ -453,6 +550,7 @@ program
   .description('List available test scenarios')
   .option('--client', 'List client scenarios')
   .option('--server', 'List server scenarios')
+  .option('--authorization', 'List authorization server scenarios')
   .option(
     '--spec-version <version>',
     'Filter scenarios by spec version (cumulative for date versions)'
@@ -462,7 +560,10 @@ program
       ? resolveSpecVersion(options.specVersion)
       : undefined;
 
-    if (options.server || (!options.client && !options.server)) {
+    if (
+      options.server ||
+      (!options.client && !options.server && !options.authorization)
+    ) {
       console.log('Server scenarios (test against a server):');
       let serverScenarios = listClientScenarios();
       if (specVersionFilter) {
@@ -478,7 +579,10 @@ program
       });
     }
 
-    if (options.client || (!options.client && !options.server)) {
+    if (
+      options.client ||
+      (!options.client && !options.server && !options.authorization)
+    ) {
       if (options.server || (!options.client && !options.server)) {
         console.log('');
       }
@@ -492,6 +596,31 @@ program
         );
       }
       clientScenarioNames.forEach((s) => {
+        const v = getScenarioSpecVersions(s);
+        console.log(`  - ${s}${v ? ` [${v}]` : ''}`);
+      });
+    }
+
+    if (
+      options.authorization ||
+      (!options.authorization && !options.server && !options.client)
+    ) {
+      if (!(options.authorization && !options.server && !options.client)) {
+        console.log('');
+      }
+      console.log(
+        'Authorization server scenarios (test against an authorization server):'
+      );
+      let authorizationServerScenarios =
+        listClientScenariosForAuthorizationServer();
+      if (specVersionFilter) {
+        authorizationServerScenarios = filterScenariosBySpecVersion(
+          authorizationServerScenarios,
+          specVersionFilter,
+          'authorization'
+        );
+      }
+      authorizationServerScenarios.forEach((s) => {
         const v = getScenarioSpecVersions(s);
         console.log(`  - ${s}${v ? ` [${v}]` : ''}`);
       });

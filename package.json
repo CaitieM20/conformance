@@ -1,6 +1,6 @@
 {
   "name": "@modelcontextprotocol/conformance",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "type": "module",
   "license": "MIT",
   "author": "Anthropic, PBC (https://anthropic.com)",
@@ -14,7 +14,7 @@
     "start": "tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "tsdown src/index.ts --minify --clean --target node20",
+    "build": "tsdown src/index.ts --minify --clean --target node20 --no-fixed-extension",
     "lint": "eslint src/ examples/ && prettier --check .",
     "lint:fix": "eslint src/ examples/ --fix && prettier --write .",
     "lint:fix_check": "npm run lint:fix && git diff --exit-code --quiet",
@@ -30,30 +30,30 @@
     "conformance": "dist/index.js"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^9.39.4",
     "@types/express": "^5.0.3",
-    "@types/node": "^22.10.2",
-    "@typescript/native-preview": "^7.0.0-dev.20251201.1",
+    "@types/node": "^25.6.0",
+    "@typescript/native-preview": "^7.0.0-dev.20260424.1",
     "cors": "^2.8.5",
-    "eslint": "^9.8.0",
+    "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
-    "lefthook": "^2.0.2",
-    "prettier": "3.6.2",
-    "tsdown": "^0.15.12",
+    "lefthook": "^2.1.6",
+    "prettier": "^3.8.3",
+    "tsdown": "^0.21.10",
     "tsx": "^4.7.0",
     "typescript": "^5.5.4",
-    "typescript-eslint": "8.48.0",
-    "vitest": "^4.0.16"
+    "typescript-eslint": "^8.59.0",
+    "vitest": "^4.1.5"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@octokit/rest": "^22.0.0",
     "commander": "^14.0.2",
-    "eventsource-parser": "^3.0.6",
+    "eventsource-parser": "^3.0.8",
     "express": "^5.1.0",
     "jose": "^6.1.2",
-    "undici": "^7.19.0",
+    "undici": "^7.25.0",
     "yaml": "^2.8.2",
-    "zod": "^3.25.76",
-    "@octokit/rest": "^22.0.0"
+    "zod": "^4.3.6"
   }
 }

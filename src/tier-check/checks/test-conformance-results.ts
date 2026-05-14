@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { mkdtempSync, readFileSync, existsSync, globSync } from 'fs';
 import { join, dirname } from 'path';
 import { tmpdir } from 'os';
@@ -6,16 +6,26 @@ import { ConformanceResult } from '../types';
 import {
   listScenarios,
   listActiveClientScenarios,
+  listScenariosForSpec,
+  listClientScenariosForSpec,
   getScenarioSpecVersions
 } from '../../scenarios';
-import { ConformanceCheck, SpecVersion } from '../../types';
+import {
+  ConformanceCheck,
+  DRAFT_PROTOCOL_VERSION,
+  ScenarioSpecTag,
+  SpecVersion
+} from '../../types';
 
-const NON_SCORING_VERSIONS: SpecVersion[] = ['draft', 'extension'];
+const NON_SCORING_TAGS: ScenarioSpecTag[] = [
+  DRAFT_PROTOCOL_VERSION,
+  'extension'
+];
 
 /** Whether a scenario counts toward tier scoring (has at least one date-versioned spec). */
-function isTierScoring(specVersions?: SpecVersion[]): boolean {
+function isTierScoring(specVersions?: ScenarioSpecTag[]): boolean {
   if (!specVersions || specVersions.length === 0) return true; // unknown = count it
-  return specVersions.some((v) => !NON_SCORING_VERSIONS.includes(v));
+  return specVersions.some((v) => !NON_SCORING_TAGS.includes(v));
 }
 
 /**
@@ -43,7 +53,7 @@ function parseOutputDir(outputDir: string): ConformanceResult {
   const checksFiles = globSync('**/checks.json', { cwd: outputDir });
 
   for (const checksFile of checksFiles) {
-    const scenarioName = dirname(checksFile);
+    const scenarioName = dirname(checksFile).replace(/\\/g, '/');
     const checksPath = join(outputDir, checksFile);
 
     try {
@@ -166,6 +176,7 @@ function reconcileWithExpected(
 export async function checkConformance(options: {
   serverUrl?: string;
   skip?: boolean;
+  specVersion?: SpecVersion;
 }): Promise<ConformanceResult> {
   if (options.skip || !options.serverUrl) {
     return {
@@ -179,23 +190,37 @@ export async function checkConformance(options: {
   }
 
   const outputDir = mkdtempSync(join(tmpdir(), 'tier-check-server-'));
+  const args = [
+    process.argv[1],
+    'server',
+    '--url',
+    options.serverUrl,
+    '-o',
+    outputDir
+  ];
+  if (options.specVersion) {
+    args.push('--spec-version', options.specVersion);
+  }
 
   try {
-    execSync(
-      `node dist/index.js server --url ${options.serverUrl} -o ${outputDir}`,
-      {
-        cwd: process.cwd(),
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 120_000
-      }
-    );
+    execFileSync(process.execPath, args, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 120_000
+    });
   } catch {
     // Non-zero exit is expected when tests fail — results are still in outputDir
   }
 
+  const activeScenarios = new Set(listActiveClientScenarios());
+  const expectedScenarios = options.specVersion
+    ? listClientScenariosForSpec(options.specVersion).filter((s) =>
+        activeScenarios.has(s)
+      )
+    : [...activeScenarios];
+
   return reconcileWithExpected(
     parseOutputDir(outputDir),
-    listActiveClientScenarios(),
+    expectedScenarios,
     'server'
   );
 }
@@ -206,6 +231,7 @@ export async function checkConformance(options: {
 export async function checkClientConformance(options: {
   clientCmd?: string;
   skip?: boolean;
+  specVersion?: SpecVersion;
 }): Promise<ConformanceResult> {
   if (options.skip || !options.clientCmd) {
     return {
@@ -219,19 +245,32 @@ export async function checkClientConformance(options: {
   }
 
   const outputDir = mkdtempSync(join(tmpdir(), 'tier-check-client-'));
+  const args = [
+    process.argv[1],
+    'client',
+    '--command',
+    options.clientCmd,
+    '--suite',
+    'all',
+    '-o',
+    outputDir
+  ];
+  if (options.specVersion) {
+    args.push('--spec-version', options.specVersion);
+  }
 
   try {
-    execSync(
-      `node dist/index.js client --command '${options.clientCmd}' --suite all -o ${outputDir}`,
-      {
-        cwd: process.cwd(),
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 120_000
-      }
-    );
+    execFileSync(process.execPath, args, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 120_000
+    });
   } catch {
     // Non-zero exit is expected when tests fail — results are still in outputDir
   }
 
-  return reconcileWithExpected(parseOutputDir(outputDir), listScenarios());
+  const expectedScenarios = options.specVersion
+    ? listScenariosForSpec(options.specVersion)
+    : listScenarios();
+
+  return reconcileWithExpected(parseOutputDir(outputDir), expectedScenarios);
 }
