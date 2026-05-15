@@ -116,7 +116,6 @@ const pendingClientScenariosList: ClientScenario[] = [
   new InputRequiredResultTaskBasicScenario(),
   new InputRequiredResultTaskBadInputResponseScenario(),
   new InputRequiredResultTaskInputResponseInputRequiredScenario()
-
 ];
 
 // All client scenarios

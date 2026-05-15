@@ -183,7 +183,8 @@ Implement a tool named \`test_input_required_result_task\` that supports task-au
       checks.push({
         id: 'input-required-result-task-tasks-result-incomplete',
         name: 'InputRequiredResultTaskTasksResultIncomplete',
-        description: 'tasks/result returns InputRequiredResult with inputRequests',
+        description:
+          'tasks/result returns InputRequiredResult with inputRequests',
         status: r3Errors.length === 0 ? 'SUCCESS' : 'FAILURE',
         timestamp: new Date().toISOString(),
         errorMessage: r3Errors.length > 0 ? r3Errors.join('; ') : undefined,
@@ -191,7 +192,8 @@ Implement a tool named \`test_input_required_result_task\` that supports task-au
         details: { result: r3Result }
       });
 
-      if (r3Errors.length > 0 || !isInputRequiredResult(r3Result)) return checks;
+      if (r3Errors.length > 0 || !isInputRequiredResult(r3Result))
+        return checks;
 
       // Step 4: Call tasks/input_response with inputResponses
       const inputKey = Object.keys(r3Result.inputRequests!)[0];

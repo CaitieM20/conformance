@@ -32,10 +32,7 @@ class InMemoryEventStore implements EventStore {
     new Map();
   private counter = 0;
 
-  async storeEvent(
-    streamId: StreamId,
-    message: string
-  ): Promise<EventId> {
+  async storeEvent(streamId: StreamId, message: string): Promise<EventId> {
     const id = String(++this.counter);
     this.events.set(id, { streamId: streamId as string, message });
     return id as EventId;
@@ -43,9 +40,7 @@ class InMemoryEventStore implements EventStore {
 
   async replayEventsAfter(
     lastEventId: EventId,
-    {
-      send
-    }: { send: (eventId: EventId, message: string) => void }
+    { send }: { send: (eventId: EventId, message: string) => void }
   ): Promise<string> {
     const start = parseInt(lastEventId as string, 10) || 0;
     for (const [id, evt] of this.events) {
@@ -53,9 +48,9 @@ class InMemoryEventStore implements EventStore {
         send(id as EventId, evt.message);
       }
     }
-    return (this.events.size > 0
-      ? String(this.counter)
-      : (lastEventId as string)) as string;
+    return (
+      this.events.size > 0 ? String(this.counter) : (lastEventId as string)
+    ) as string;
   }
 }
 
@@ -151,5 +146,7 @@ app.all('/mcp', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`sep-2322-no-mrtr server running on http://localhost:${PORT}/mcp`);
+  console.log(
+    `sep-2322-no-mrtr server running on http://localhost:${PORT}/mcp`
+  );
 });

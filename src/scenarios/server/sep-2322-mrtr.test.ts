@@ -24,10 +24,7 @@ import {
   InputRequiredResultTaskInputResponseInputRequiredScenario
 } from './input-required-result-tasks';
 
-function startServer(
-  scriptPath: string,
-  port: number
-): Promise<ChildProcess> {
+function startServer(scriptPath: string, port: number): Promise<ChildProcess> {
   return new Promise((resolve, reject) => {
     const isWindows = process.platform === 'win32';
     const proc = spawn('npx', ['tsx', scriptPath], {
@@ -105,18 +102,22 @@ describe('SEP-2322 MRTR positive tests', () => {
   ];
 
   for (const scenario of scenarios) {
-    it(scenario.name, async () => {
-      const checks = await scenario.run(SERVER_URL);
+    it(
+      scenario.name,
+      async () => {
+        const checks = await scenario.run(SERVER_URL);
 
-      expect(checks.length).toBeGreaterThan(0);
+        expect(checks.length).toBeGreaterThan(0);
 
-      const failures = checks.filter((c) => c.status === 'FAILURE');
-      if (failures.length > 0) {
-        const failureMessages = failures
-          .map((c) => `${c.name}: ${c.errorMessage || c.description}`)
-          .join('\n  ');
-        throw new Error(`Scenario failed with checks:\n  ${failureMessages}`);
-      }
-    }, 15000);
+        const failures = checks.filter((c) => c.status === 'FAILURE');
+        if (failures.length > 0) {
+          const failureMessages = failures
+            .map((c) => `${c.name}: ${c.errorMessage || c.description}`)
+            .join('\n  ');
+          throw new Error(`Scenario failed with checks:\n  ${failureMessages}`);
+        }
+      },
+      15000
+    );
   }
 });

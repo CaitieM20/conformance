@@ -176,7 +176,9 @@ Implement a tool named \`test_input_required_result_elicitation\` (no arguments 
 
 // ─── A2: Basic Sampling ──────────────────────────────────────────────────────
 
-export class InputRequiredResultBasicSamplingScenario implements ClientScenario {
+export class InputRequiredResultBasicSamplingScenario
+  implements ClientScenario
+{
   name = 'input-required-result-basic-sampling';
   specVersions: SpecVersion[] = ['draft'];
   description = `Test basic ephemeral InputRequiredResult flow with a single sampling input request (SEP-2322).
@@ -227,7 +229,9 @@ Implement a tool named \`test_input_required_result_sampling\` (no arguments req
       } else if (!r1Result) {
         r1Errors.push('No result in response');
       } else if (!isInputRequiredResult(r1Result)) {
-        r1Errors.push('Expected InputRequiredResult with sampling inputRequest');
+        r1Errors.push(
+          'Expected InputRequiredResult with sampling inputRequest'
+        );
       } else {
         if (!r1Result.inputRequests) {
           r1Errors.push('InputRequiredResult missing inputRequests');
@@ -316,7 +320,9 @@ Implement a tool named \`test_input_required_result_sampling\` (no arguments req
 
 // ─── A3: Basic ListRoots ─────────────────────────────────────────────────────
 
-export class InputRequiredResultBasicListRootsScenario implements ClientScenario {
+export class InputRequiredResultBasicListRootsScenario
+  implements ClientScenario
+{
   name = 'input-required-result-basic-list-roots';
   specVersions: SpecVersion[] = ['draft'];
   description = `Test basic ephemeral InputRequiredResult flow with a single roots/list input request (SEP-2322).
@@ -361,7 +367,9 @@ Implement a tool named \`test_input_required_result_list_roots\` (no arguments r
       } else if (!r1Result) {
         r1Errors.push('No result in response');
       } else if (!isInputRequiredResult(r1Result)) {
-        r1Errors.push('Expected InputRequiredResult with roots/list inputRequest');
+        r1Errors.push(
+          'Expected InputRequiredResult with roots/list inputRequest'
+        );
       } else {
         if (!r1Result.inputRequests) {
           r1Errors.push('InputRequiredResult missing inputRequests');
@@ -1031,7 +1039,9 @@ Use the same tool as A1: \`test_input_required_result_elicitation\`.
 
 // ─── A9: Non-Tool Request (prompts/get) ──────────────────────────────────────
 
-export class InputRequiredResultNonToolRequestScenario implements ClientScenario {
+export class InputRequiredResultNonToolRequestScenario
+  implements ClientScenario
+{
   name = 'input-required-result-non-tool-request';
   specVersions: SpecVersion[] = ['draft'];
   description = `Test InputRequiredResult on a non-tool request (prompts/get) to verify InputRequiredResult is universal (SEP-2322).
@@ -1088,7 +1098,8 @@ Implement a prompt named \`test_input_required_result_prompt\` that requires eli
       checks.push({
         id: 'input-required-result-non-tool-incomplete',
         name: 'InputRequiredResultNonToolIncomplete',
-        description: 'prompts/get returns InputRequiredResult with inputRequests',
+        description:
+          'prompts/get returns InputRequiredResult with inputRequests',
         status: r1Errors.length === 0 ? 'SUCCESS' : 'FAILURE',
         timestamp: new Date().toISOString(),
         errorMessage: r1Errors.length > 0 ? r1Errors.join('; ') : undefined,
@@ -1140,7 +1151,8 @@ Implement a prompt named \`test_input_required_result_prompt\` that requires eli
       checks.push({
         id: 'input-required-result-non-tool-incomplete',
         name: 'InputRequiredResultNonToolIncomplete',
-        description: 'prompts/get returns InputRequiredResult with inputRequests',
+        description:
+          'prompts/get returns InputRequiredResult with inputRequests',
         status: 'FAILURE',
         timestamp: new Date().toISOString(),
         errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
