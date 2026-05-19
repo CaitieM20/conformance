@@ -17,6 +17,7 @@ import { RequestMetadataScenario } from './client/request-metadata';
 
 // Import all new server test scenarios
 import { ServerInitializeScenario } from './server/lifecycle';
+import { ServerStatelessScenario } from './server/stateless';
 
 import {
   PingScenario,
@@ -107,6 +108,7 @@ const pendingClientScenariosList: ClientScenario[] = [
 const allClientScenariosList: ClientScenario[] = [
   // Lifecycle scenarios
   new ServerInitializeScenario(),
+  new ServerStatelessScenario(),
 
   // Utilities scenarios
   new LoggingSetLevelScenario(),
