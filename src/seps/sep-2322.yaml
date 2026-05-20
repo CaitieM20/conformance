@@ -47,7 +47,7 @@ requirements:
     text: 'The JSON-RPC id MUST be different between the initial request and the retry, as they are independent requests.'
 
   - check: mrtr-client-parallel-isolation
-    text: 'Both the inputRequests and requestState fields affect only the client''s retry of the original request. They MUST NOT be used for any other request that the client may be sending in parallel.'
+    text: "Both the inputRequests and requestState fields affect only the client's retry of the original request. They MUST NOT be used for any other request that the client may be sending in parallel."
 
   # ── Ephemeral Workflow: Complete Result After Retry ─────────────────────────
   - check: input-required-result-elicitation-complete

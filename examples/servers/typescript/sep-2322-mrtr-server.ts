@@ -599,9 +599,7 @@ handlers['tools/call'] = (params) => {
         }
         if (verified.kind === 'tamper-test' && inputResponses?.['confirm']) {
           return {
-            content: [
-              { type: 'text', text: 'integrity-ok: state verified' }
-            ]
+            content: [{ type: 'text', text: 'integrity-ok: state verified' }]
           };
         }
       }

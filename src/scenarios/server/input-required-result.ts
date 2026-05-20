@@ -1219,9 +1219,7 @@ This scenario verifies that the resultType field is explicitly present in the re
 
 // ─── A11: Unsupported Methods ────────────────────────────────────────────────
 
-export class InputRequiredResultUnsupportedMethodsScenario
-  implements ClientScenario
-{
+export class InputRequiredResultUnsupportedMethodsScenario implements ClientScenario {
   name = 'input-required-result-unsupported-methods';
   readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
@@ -1278,9 +1276,7 @@ Servers MUST NOT send InputRequiredResult responses on any client requests other
 
 // ─── A12: Tampered State Rejection ───────────────────────────────────────────
 
-export class InputRequiredResultTamperedStateScenario
-  implements ClientScenario
-{
+export class InputRequiredResultTamperedStateScenario implements ClientScenario {
   name = 'input-required-result-tampered-state';
   readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
@@ -1311,8 +1307,7 @@ JSON-RPC error (code -32602 or similar) indicating integrity check failure.`;
         checks.push({
           id: 'sep-2322-reject-tampered-state',
           name: 'RejectTamperedState',
-          description:
-            'Server rejects tampered requestState with error',
+          description: 'Server rejects tampered requestState with error',
           status: 'FAILURE',
           timestamp: new Date().toISOString(),
           errorMessage:
@@ -1326,8 +1321,7 @@ JSON-RPC error (code -32602 or similar) indicating integrity check failure.`;
         checks.push({
           id: 'sep-2322-reject-tampered-state',
           name: 'RejectTamperedState',
-          description:
-            'Server rejects tampered requestState with error',
+          description: 'Server rejects tampered requestState with error',
           status: 'FAILURE',
           timestamp: new Date().toISOString(),
           errorMessage:
@@ -1361,8 +1355,7 @@ JSON-RPC error (code -32602 or similar) indicating integrity check failure.`;
       checks.push({
         id: 'sep-2322-reject-tampered-state',
         name: 'RejectTamperedState',
-        description:
-          'Server rejects tampered requestState with error',
+        description: 'Server rejects tampered requestState with error',
         status: errors.length === 0 ? 'SUCCESS' : 'FAILURE',
         timestamp: new Date().toISOString(),
         errorMessage: errors.length > 0 ? errors.join('; ') : undefined,
@@ -1373,8 +1366,7 @@ JSON-RPC error (code -32602 or similar) indicating integrity check failure.`;
       checks.push({
         id: 'sep-2322-reject-tampered-state',
         name: 'RejectTamperedState',
-        description:
-          'Server rejects tampered requestState with error',
+        description: 'Server rejects tampered requestState with error',
         status: 'FAILURE',
         timestamp: new Date().toISOString(),
         errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -1388,9 +1380,7 @@ JSON-RPC error (code -32602 or similar) indicating integrity check failure.`;
 
 // ─── A13: Respect Client Capabilities ────────────────────────────────────────
 
-export class InputRequiredResultCapabilityCheckScenario
-  implements ClientScenario
-{
+export class InputRequiredResultCapabilityCheckScenario implements ClientScenario {
   name = 'input-required-result-capability-check';
   readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
@@ -1482,9 +1472,7 @@ Only include inputRequests for methods the client supports. For example, if the 
 
 // ─── A14: Ignore Unexpected Params ───────────────────────────────────────────
 
-export class InputRequiredResultIgnoreExtraParamsScenario
-  implements ClientScenario
-{
+export class InputRequiredResultIgnoreExtraParamsScenario implements ClientScenario {
   name = 'input-required-result-ignore-extra-params';
   readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
@@ -1532,8 +1520,7 @@ the extra keys and complete normally.`;
       checks.push({
         id: 'sep-2322-ignore-unexpected-params',
         name: 'IgnoreUnexpectedParams',
-        description:
-          'Server ignores extra unrecognized keys in inputResponses',
+        description: 'Server ignores extra unrecognized keys in inputResponses',
         status: errors.length === 0 ? 'SUCCESS' : 'WARNING',
         timestamp: new Date().toISOString(),
         errorMessage: errors.length > 0 ? errors.join('; ') : undefined,
@@ -1544,8 +1531,7 @@ the extra keys and complete normally.`;
       checks.push({
         id: 'sep-2322-ignore-unexpected-params',
         name: 'IgnoreUnexpectedParams',
-        description:
-          'Server ignores extra unrecognized keys in inputResponses',
+        description: 'Server ignores extra unrecognized keys in inputResponses',
         status: 'FAILURE',
         timestamp: new Date().toISOString(),
         errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -1559,9 +1545,7 @@ the extra keys and complete normally.`;
 
 // ─── A15: Validate InputResponses ────────────────────────────────────────────
 
-export class InputRequiredResultValidateInputScenario
-  implements ClientScenario
-{
+export class InputRequiredResultValidateInputScenario implements ClientScenario {
   name = 'input-required-result-validate-input';
   readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
@@ -1591,11 +1575,7 @@ and return a JSON-RPC error or a new InputRequiredResult.`;
 
       // Server should either error or re-request — NOT return a complete result
       // with the invalid data silently accepted
-      if (
-        !resp.error &&
-        resp.result &&
-        isCompleteResult(resp.result)
-      ) {
+      if (!resp.error && resp.result && isCompleteResult(resp.result)) {
         validateErrors.push(
           'Server accepted invalid inputResponses (number instead of object) and returned complete result. ' +
             'Servers SHOULD validate InputResponses data.'
@@ -1605,8 +1585,7 @@ and return a JSON-RPC error or a new InputRequiredResult.`;
       checks.push({
         id: 'sep-2322-validate-input-responses',
         name: 'ValidateInputResponses',
-        description:
-          'Server validates InputResponses structure',
+        description: 'Server validates InputResponses structure',
         status: validateErrors.length === 0 ? 'SUCCESS' : 'WARNING',
         timestamp: new Date().toISOString(),
         errorMessage:
@@ -1624,11 +1603,7 @@ and return a JSON-RPC error or a new InputRequiredResult.`;
 
       const protocolErrors: string[] = [];
 
-      if (
-        !resp2.error &&
-        resp2.result &&
-        isCompleteResult(resp2.result)
-      ) {
+      if (!resp2.error && resp2.result && isCompleteResult(resp2.result)) {
         protocolErrors.push(
           'Server accepted null inputResponses and returned complete result. ' +
             'Protocol errors SHOULD return a JSON-RPC error response.'
@@ -1651,8 +1626,7 @@ and return a JSON-RPC error or a new InputRequiredResult.`;
       checks.push({
         id: 'sep-2322-validate-input-responses',
         name: 'ValidateInputResponses',
-        description:
-          'Server validates InputResponses structure',
+        description: 'Server validates InputResponses structure',
         status: 'FAILURE',
         timestamp: new Date().toISOString(),
         errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
