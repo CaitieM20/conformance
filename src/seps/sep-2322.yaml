@@ -64,20 +64,20 @@ requirements:
   - text: 'client MUST construct the requested inputs before retrying the original request'
     excluded: 'Client behavior; not testable via server conformance tests'
 
-  - text: 'client MUST echo back the exact value of requestState when retrying'
-    excluded: 'Client behavior; not testable via server conformance tests'
+  - check: mrtr-client-request-state-echoed
+    text: 'client MUST echo back the exact value of requestState when retrying'
 
-  - text: 'Clients MUST NOT inspect, parse, modify, or make any assumptions about the requestState contents'
-    excluded: 'Client behavior; not testable via server conformance tests'
+  - check: mrtr-client-request-state-echoed
+    text: 'Clients MUST NOT inspect, parse, modify, or make any assumptions about the requestState contents'
 
-  - text: 'If the InputRequiredResult does not contain a requestState field, the client MUST NOT include one in the retry'
-    excluded: 'Client behavior; not testable via server conformance tests'
+  - check: mrtr-client-no-state-omitted
+    text: 'If the InputRequiredResult does not contain a requestState field, the client MUST NOT include one in the retry'
 
-  - text: 'The JSON-RPC id MUST be different between the initial request and the retry'
-    excluded: 'Client behavior; not testable via server conformance tests'
+  - check: mrtr-client-jsonrpc-id-different
+    text: 'The JSON-RPC id MUST be different between the initial request and the retry'
 
-  - text: 'inputRequests and requestState MUST NOT be used for any other request the client may be sending in parallel'
-    excluded: 'Client behavior; not testable via server conformance tests'
+  - check: mrtr-client-parallel-isolation
+    text: 'inputRequests and requestState MUST NOT be used for any other request the client may be sending in parallel'
 
   # ── Server Requirements (Tasks) ────────────────────────────────────────────
 

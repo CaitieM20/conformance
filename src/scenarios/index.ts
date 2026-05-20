@@ -14,6 +14,7 @@ import { ToolsCallScenario } from './client/tools_call';
 import { ElicitationClientDefaultsScenario } from './client/elicitation-defaults';
 import { SSERetryScenario } from './client/sse-retry';
 import { RequestMetadataScenario } from './client/request-metadata';
+import { MRTRClientScenario } from './client/mrtr-client';
 
 // Import all new server test scenarios
 import { ServerInitializeScenario } from './server/lifecycle';
@@ -257,6 +258,9 @@ const scenariosList: Scenario[] = [
   ...backcompatScenariosList,
   ...draftScenariosList,
   ...extensionScenariosList,
+
+  // MRTR client conformance (SEP-2322)
+  new MRTRClientScenario(),
 
   // HTTP Standardization scenarios (SEP-2243)
   new HttpStandardHeadersScenario(),
