@@ -1,14 +1,64 @@
 /**
  * Helpers for SEP-2322 conformance tests.
  *
- * Uses RawMcpSession from client-helper.ts for connection management and
- * raw JSON-RPC transport. This file adds InputRequiredResult-specific type
- * guards and mock response builders.
+ * Provides InputRequiredResult-specific type guards, mock response builders,
+ * and a stateless JSON-RPC transport helper.
  */
 
-import { RawMcpSession, JsonRpcResponse } from './client-helper';
+import { DRAFT_PROTOCOL_VERSION } from '../../types';
 
-export type { RawMcpSession, JsonRpcResponse };
+// ─── JSON-RPC Types ──────────────────────────────────────────────────────────
+
+export interface JsonRpcResponse {
+  jsonrpc: '2.0';
+  id: number;
+  result?: Record<string, unknown>;
+  error?: { code: number; message: string; data?: unknown };
+}
+
+// ─── Stateless RPC Helper ────────────────────────────────────────────────────
+
+let nextId = 1;
+
+/**
+ * Send a stateless JSON-RPC request (SEP-2575 pattern).
+ * Automatically injects _meta with protocolVersion, clientInfo, clientCapabilities.
+ */
+export async function sendRpc(
+  serverUrl: string,
+  method: string,
+  params?: Record<string, unknown>
+): Promise<JsonRpcResponse> {
+  const id = nextId++;
+
+  const enrichedParams = {
+    ...params,
+    _meta: {
+      'io.modelcontextprotocol/protocolVersion': DRAFT_PROTOCOL_VERSION,
+      'io.modelcontextprotocol/clientInfo': {
+        name: 'conformance-test-client',
+        version: '1.0.0'
+      },
+      'io.modelcontextprotocol/clientCapabilities': {
+        sampling: {},
+        elicitation: {}
+      },
+      ...(params?._meta as Record<string, unknown> | undefined)
+    }
+  };
+
+  const response = await fetch(serverUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'MCP-Protocol-Version': DRAFT_PROTOCOL_VERSION
+    },
+    body: JSON.stringify({ jsonrpc: '2.0', id, method, params: enrichedParams })
+  });
+
+  return (await response.json()) as JsonRpcResponse;
+}
 
 // ─── InputRequiredResult Types ───────────────────────────────────────────────
 

@@ -12,8 +12,8 @@ import {
   DRAFT_PROTOCOL_VERSION,
   SpecVersion
 } from '../../types';
-import { createRawSession } from './client-helper';
 import {
+  sendRpc,
   isInputRequiredResult,
   isCompleteResult,
   mockElicitResponse,
@@ -69,10 +69,8 @@ Implement a tool named \`test_input_required_result_elicitation\` (no arguments 
     const checks: ConformanceCheck[] = [];
 
     try {
-      const session = await createRawSession(serverUrl);
-
       // Round 1: Initial call — expect InputRequiredResult
-      const r1 = await session.send('tools/call', {
+      const r1 = await sendRpc(serverUrl, 'tools/call', {
         name: 'test_input_required_result_elicitation',
         arguments: {}
       });
@@ -118,7 +116,7 @@ Implement a tool named \`test_input_required_result_elicitation\` (no arguments 
 
       // Round 2: Retry with inputResponses — expect complete result
       if (r1Errors.length === 0 && isInputRequiredResult(r1Result)) {
-        const r2 = await session.send('tools/call', {
+        const r2 = await sendRpc(serverUrl, 'tools/call', {
           name: 'test_input_required_result_elicitation',
           arguments: {},
           inputResponses: {
@@ -216,10 +214,8 @@ Implement a tool named \`test_input_required_result_sampling\` (no arguments req
     const checks: ConformanceCheck[] = [];
 
     try {
-      const session = await createRawSession(serverUrl);
-
       // Round 1: Initial call
-      const r1 = await session.send('tools/call', {
+      const r1 = await sendRpc(serverUrl, 'tools/call', {
         name: 'test_input_required_result_sampling',
         arguments: {}
       });
@@ -268,7 +264,7 @@ Implement a tool named \`test_input_required_result_sampling\` (no arguments req
       // Round 2: Retry with inputResponses
       if (r1Errors.length === 0 && isInputRequiredResult(r1Result)) {
         const inputKey = Object.keys(r1Result.inputRequests!)[0];
-        const r2 = await session.send('tools/call', {
+        const r2 = await sendRpc(serverUrl, 'tools/call', {
           name: 'test_input_required_result_sampling',
           arguments: {},
           inputResponses: {
@@ -353,10 +349,8 @@ Implement a tool named \`test_input_required_result_list_roots\` (no arguments r
     const checks: ConformanceCheck[] = [];
 
     try {
-      const session = await createRawSession(serverUrl);
-
       // Round 1: Initial call
-      const r1 = await session.send('tools/call', {
+      const r1 = await sendRpc(serverUrl, 'tools/call', {
         name: 'test_input_required_result_list_roots',
         arguments: {}
       });
@@ -405,7 +399,7 @@ Implement a tool named \`test_input_required_result_list_roots\` (no arguments r
       // Round 2: Retry with inputResponses
       if (r1Errors.length === 0 && isInputRequiredResult(r1Result)) {
         const inputKey = Object.keys(r1Result.inputRequests!)[0];
-        const r2 = await session.send('tools/call', {
+        const r2 = await sendRpc(serverUrl, 'tools/call', {
           name: 'test_input_required_result_list_roots',
           arguments: {},
           inputResponses: {
@@ -498,10 +492,8 @@ Implement a tool named \`test_input_required_result_request_state\` (no argument
     const checks: ConformanceCheck[] = [];
 
     try {
-      const session = await createRawSession(serverUrl);
-
       // Round 1
-      const r1 = await session.send('tools/call', {
+      const r1 = await sendRpc(serverUrl, 'tools/call', {
         name: 'test_input_required_result_request_state',
         arguments: {}
       });
@@ -540,7 +532,7 @@ Implement a tool named \`test_input_required_result_request_state\` (no argument
       // Round 2: Retry with inputResponses + requestState
       if (r1Errors.length === 0 && isInputRequiredResult(r1Result)) {
         const inputKey = Object.keys(r1Result.inputRequests!)[0];
-        const r2 = await session.send('tools/call', {
+        const r2 = await sendRpc(serverUrl, 'tools/call', {
           name: 'test_input_required_result_request_state',
           arguments: {},
           inputResponses: {
@@ -653,10 +645,8 @@ Implement a tool named \`test_input_required_result_multiple_inputs\` (no argume
     const checks: ConformanceCheck[] = [];
 
     try {
-      const session = await createRawSession(serverUrl);
-
       // Round 1
-      const r1 = await session.send('tools/call', {
+      const r1 = await sendRpc(serverUrl, 'tools/call', {
         name: 'test_input_required_result_multiple_inputs',
         arguments: {}
       });
@@ -727,7 +717,7 @@ Implement a tool named \`test_input_required_result_multiple_inputs\` (no argume
           }
         }
 
-        const r2 = await session.send('tools/call', {
+        const r2 = await sendRpc(serverUrl, 'tools/call', {
           name: 'test_input_required_result_multiple_inputs',
           arguments: {},
           inputResponses,
@@ -840,10 +830,8 @@ Implement a tool named \`test_input_required_result_multi_round\` (no arguments 
     const checks: ConformanceCheck[] = [];
 
     try {
-      const session = await createRawSession(serverUrl);
-
       // Round 1
-      const r1 = await session.send('tools/call', {
+      const r1 = await sendRpc(serverUrl, 'tools/call', {
         name: 'test_input_required_result_multi_round',
         arguments: {}
       });
@@ -879,7 +867,7 @@ Implement a tool named \`test_input_required_result_multi_round\` (no arguments 
 
       // Round 2: Retry — expect another InputRequiredResult
       const r1InputKey = Object.keys(r1Result.inputRequests!)[0];
-      const r2 = await session.send('tools/call', {
+      const r2 = await sendRpc(serverUrl, 'tools/call', {
         name: 'test_input_required_result_multi_round',
         arguments: {},
         inputResponses: {
@@ -922,7 +910,7 @@ Implement a tool named \`test_input_required_result_multi_round\` (no arguments 
 
       // Round 3: Final retry — expect complete result
       const r2InputKey = Object.keys(r2Result.inputRequests!)[0];
-      const r3 = await session.send('tools/call', {
+      const r3 = await sendRpc(serverUrl, 'tools/call', {
         name: 'test_input_required_result_multi_round',
         arguments: {},
         inputResponses: {
@@ -982,10 +970,8 @@ Use the same tool as A1: \`test_input_required_result_elicitation\`.
     const checks: ConformanceCheck[] = [];
 
     try {
-      const session = await createRawSession(serverUrl);
-
       // Round 1: Send wrong inputResponses (wrong key)
-      const r1 = await session.send('tools/call', {
+      const r1 = await sendRpc(serverUrl, 'tools/call', {
         name: 'test_input_required_result_elicitation',
         arguments: {},
         inputResponses: {
@@ -1078,10 +1064,8 @@ Implement a prompt named \`test_input_required_result_prompt\` that requires eli
     const checks: ConformanceCheck[] = [];
 
     try {
-      const session = await createRawSession(serverUrl);
-
       // Round 1
-      const r1 = await session.send('prompts/get', {
+      const r1 = await sendRpc(serverUrl, 'prompts/get', {
         name: 'test_input_required_result_prompt'
       });
 
@@ -1111,7 +1095,7 @@ Implement a prompt named \`test_input_required_result_prompt\` that requires eli
       // Round 2: Retry with inputResponses
       if (r1Errors.length === 0 && isInputRequiredResult(r1Result)) {
         const inputKey = Object.keys(r1Result.inputRequests!)[0];
-        const r2 = await session.send('prompts/get', {
+        const r2 = await sendRpc(serverUrl, 'prompts/get', {
           name: 'test_input_required_result_prompt',
           inputResponses: {
             [inputKey]: mockElicitResponse({ context: 'test context' })
