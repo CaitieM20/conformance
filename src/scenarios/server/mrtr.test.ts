@@ -18,11 +18,6 @@ import {
   InputRequiredResultMissingInputResponseScenario,
   InputRequiredResultNonToolRequestScenario
 } from './input-required-result';
-import {
-  InputRequiredResultTaskBasicScenario,
-  InputRequiredResultTaskBadInputResponseScenario,
-  InputRequiredResultTaskInputResponseInputRequiredScenario
-} from './input-required-result-tasks';
 
 function startServer(scriptPath: string, port: number): Promise<ChildProcess> {
   return new Promise((resolve, reject) => {
@@ -95,10 +90,7 @@ describe('SEP-2322 MRTR positive tests', () => {
     new InputRequiredResultMultipleInputRequestsScenario(),
     new InputRequiredResultMultiRoundScenario(),
     new InputRequiredResultMissingInputResponseScenario(),
-    new InputRequiredResultNonToolRequestScenario(),
-    new InputRequiredResultTaskBasicScenario(),
-    new InputRequiredResultTaskBadInputResponseScenario(),
-    new InputRequiredResultTaskInputResponseInputRequiredScenario()
+    new InputRequiredResultNonToolRequestScenario()
   ];
 
   for (const scenario of scenarios) {

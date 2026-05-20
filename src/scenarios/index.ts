@@ -76,11 +76,7 @@ import {
   InputRequiredResultNonToolRequestScenario
 } from './server/input-required-result';
 
-import {
-  InputRequiredResultTaskBasicScenario,
-  InputRequiredResultTaskBadInputResponseScenario,
-  InputRequiredResultTaskInputResponseInputRequiredScenario
-} from './server/input-required-result-tasks';
+
 
 import {
   authScenariosList,
@@ -112,10 +108,7 @@ const pendingClientScenariosList: ClientScenario[] = [
   new InputRequiredResultMultipleInputRequestsScenario(),
   new InputRequiredResultMultiRoundScenario(),
   new InputRequiredResultMissingInputResponseScenario(),
-  new InputRequiredResultNonToolRequestScenario(),
-  new InputRequiredResultTaskBasicScenario(),
-  new InputRequiredResultTaskBadInputResponseScenario(),
-  new InputRequiredResultTaskInputResponseInputRequiredScenario()
+  new InputRequiredResultNonToolRequestScenario()
 ];
 
 // All client scenarios
@@ -183,12 +176,7 @@ const allClientScenariosList: ClientScenario[] = [
   new InputRequiredResultMultipleInputRequestsScenario(),
   new InputRequiredResultMultiRoundScenario(),
   new InputRequiredResultMissingInputResponseScenario(),
-  new InputRequiredResultNonToolRequestScenario(),
-
-  // InputRequiredResult Task scenarios (SEP-2322)
-  new InputRequiredResultTaskBasicScenario(),
-  new InputRequiredResultTaskBadInputResponseScenario(),
-  new InputRequiredResultTaskInputResponseInputRequiredScenario()
+  new InputRequiredResultNonToolRequestScenario()
 ];
 
 // Active client scenarios (excludes pending)

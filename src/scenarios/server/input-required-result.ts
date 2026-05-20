@@ -19,9 +19,7 @@ import {
 
 // ─── A1: Basic Elicitation ────────────────────────────────────────────────────
 
-export class InputRequiredResultBasicElicitationScenario
-  implements ClientScenario
-{
+export class InputRequiredResultBasicElicitationScenario implements ClientScenario {
   name = 'input-required-result-basic-elicitation';
   specVersions: SpecVersion[] = ['draft'];
   description = `Test basic ephemeral InputRequiredResult flow with a single elicitation input request (SEP-2322).
@@ -176,9 +174,7 @@ Implement a tool named \`test_input_required_result_elicitation\` (no arguments 
 
 // ─── A2: Basic Sampling ──────────────────────────────────────────────────────
 
-export class InputRequiredResultBasicSamplingScenario
-  implements ClientScenario
-{
+export class InputRequiredResultBasicSamplingScenario implements ClientScenario {
   name = 'input-required-result-basic-sampling';
   specVersions: SpecVersion[] = ['draft'];
   description = `Test basic ephemeral InputRequiredResult flow with a single sampling input request (SEP-2322).
@@ -320,9 +316,7 @@ Implement a tool named \`test_input_required_result_sampling\` (no arguments req
 
 // ─── A3: Basic ListRoots ─────────────────────────────────────────────────────
 
-export class InputRequiredResultBasicListRootsScenario
-  implements ClientScenario
-{
+export class InputRequiredResultBasicListRootsScenario implements ClientScenario {
   name = 'input-required-result-basic-list-roots';
   specVersions: SpecVersion[] = ['draft'];
   description = `Test basic ephemeral InputRequiredResult flow with a single roots/list input request (SEP-2322).
@@ -601,9 +595,7 @@ Implement a tool named \`test_input_required_result_request_state\` (no argument
 
 // ─── A5: Multiple Input Requests ─────────────────────────────────────────────
 
-export class InputRequiredResultMultipleInputRequestsScenario
-  implements ClientScenario
-{
+export class InputRequiredResultMultipleInputRequestsScenario implements ClientScenario {
   name = 'input-required-result-multiple-input-requests';
   specVersions: SpecVersion[] = ['draft'];
   description = `Test multiple input requests in a single InputRequiredResult (SEP-2322).
@@ -963,9 +955,7 @@ Implement a tool named \`test_input_required_result_multi_round\` (no arguments 
 
 // ─── A7: Missing Input Response ──────────────────────────────────────────────
 
-export class InputRequiredResultMissingInputResponseScenario
-  implements ClientScenario
-{
+export class InputRequiredResultMissingInputResponseScenario implements ClientScenario {
   name = 'input-required-result-missing-input-response';
   specVersions: SpecVersion[] = ['draft'];
   description = `Test error handling when client sends wrong/missing inputResponses (SEP-2322).
@@ -1039,9 +1029,7 @@ Use the same tool as A1: \`test_input_required_result_elicitation\`.
 
 // ─── A9: Non-Tool Request (prompts/get) ──────────────────────────────────────
 
-export class InputRequiredResultNonToolRequestScenario
-  implements ClientScenario
-{
+export class InputRequiredResultNonToolRequestScenario implements ClientScenario {
   name = 'input-required-result-non-tool-request';
   specVersions: SpecVersion[] = ['draft'];
   description = `Test InputRequiredResult on a non-tool request (prompts/get) to verify InputRequiredResult is universal (SEP-2322).
