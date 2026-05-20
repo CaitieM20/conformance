@@ -76,8 +76,6 @@ import {
   InputRequiredResultNonToolRequestScenario
 } from './server/input-required-result';
 
-
-
 import {
   authScenariosList,
   backcompatScenariosList,
