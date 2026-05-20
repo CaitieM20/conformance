@@ -6,7 +6,7 @@
  * clients retry with inputResponses and echoed requestState.
  */
 
-import { ClientScenario, ConformanceCheck, SpecVersion } from '../../types';
+import { ClientScenario, ConformanceCheck, DRAFT_PROTOCOL_VERSION, SpecVersion } from '../../types';
 import { createRawSession } from './client-helper';
 import {
   isInputRequiredResult,
@@ -21,6 +21,7 @@ import {
 
 export class InputRequiredResultBasicElicitationScenario implements ClientScenario {
   name = 'input-required-result-basic-elicitation';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = ['draft'];
   description = `Test basic ephemeral InputRequiredResult flow with a single elicitation input request (SEP-2322).
 
@@ -176,6 +177,7 @@ Implement a tool named \`test_input_required_result_elicitation\` (no arguments 
 
 export class InputRequiredResultBasicSamplingScenario implements ClientScenario {
   name = 'input-required-result-basic-sampling';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = ['draft'];
   description = `Test basic ephemeral InputRequiredResult flow with a single sampling input request (SEP-2322).
 
@@ -318,6 +320,7 @@ Implement a tool named \`test_input_required_result_sampling\` (no arguments req
 
 export class InputRequiredResultBasicListRootsScenario implements ClientScenario {
   name = 'input-required-result-basic-list-roots';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = ['draft'];
   description = `Test basic ephemeral InputRequiredResult flow with a single roots/list input request (SEP-2322).
 
@@ -454,6 +457,7 @@ Implement a tool named \`test_input_required_result_list_roots\` (no arguments r
 
 export class InputRequiredResultRequestStateScenario implements ClientScenario {
   name = 'input-required-result-request-state';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = ['draft'];
   description = `Test that requestState is correctly round-tripped in ephemeral InputRequiredResult flow (SEP-2322).
 
@@ -597,6 +601,7 @@ Implement a tool named \`test_input_required_result_request_state\` (no argument
 
 export class InputRequiredResultMultipleInputRequestsScenario implements ClientScenario {
   name = 'input-required-result-multiple-input-requests';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = ['draft'];
   description = `Test multiple input requests in a single InputRequiredResult (SEP-2322).
 
@@ -772,6 +777,7 @@ Implement a tool named \`test_input_required_result_multiple_inputs\` (no argume
 
 export class InputRequiredResultMultiRoundScenario implements ClientScenario {
   name = 'input-required-result-multi-round';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = ['draft'];
   description = `Test multi-round ephemeral InputRequiredResult flow with evolving requestState (SEP-2322).
 
@@ -957,6 +963,7 @@ Implement a tool named \`test_input_required_result_multi_round\` (no arguments 
 
 export class InputRequiredResultMissingInputResponseScenario implements ClientScenario {
   name = 'input-required-result-missing-input-response';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = ['draft'];
   description = `Test error handling when client sends wrong/missing inputResponses (SEP-2322).
 
@@ -1031,6 +1038,7 @@ Use the same tool as A1: \`test_input_required_result_elicitation\`.
 
 export class InputRequiredResultNonToolRequestScenario implements ClientScenario {
   name = 'input-required-result-non-tool-request';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
   specVersions: SpecVersion[] = ['draft'];
   description = `Test InputRequiredResult on a non-tool request (prompts/get) to verify InputRequiredResult is universal (SEP-2322).
 
