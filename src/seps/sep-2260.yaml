@@ -1,22 +1,38 @@
 sep: 2260
 spec_url: https://modelcontextprotocol.io/specification/draft/basic/transports#streamable-http
 requirements:
-  # transports.mdx — POST-initiated SSE streams
-  - text: 'The server MAY send JSON-RPC requests and notifications before sending the JSON-RPC response. These messages MUST relate to the originating client request.'
-    excluded: 'Server-side constraint on request association. The conformance harness already operates within an originating client request context, so compliant servers pass by default. Testing violation requires a deliberately misbehaving server and a client that detects unassociated requests, which the harness does not support.'
-    url: https://modelcontextprotocol.io/specification/draft/basic/transports#streamable-http
-
-  # sampling.mdx — Request association requirement (same warning block as elicitation)
-  - text: 'Servers MUST send sampling/createMessage requests only in association with an originating client request (e.g., during tools/call, resources/read, or prompts/get processing).'
-    excluded: 'Server-side behavioral constraint. The conformance harness tests servers by sending client requests and checking responses. Servers that only use sampling within request handlers already comply. Testing violation requires a misbehaving server that sends standalone sampling requests.'
+  - check: sep-2260-no-standalone-restricted-requests
+    text: 'roots/list, sampling/createMessage, and elicitation/create requests MUST NOT be sent on standalone streams.'
+  - check: sep-2260-client-error-unassociated-elicitation
+    text: 'Clients MUST return standard JSON-RPC errors for common failure cases: Server sends an elicitation/create request with no associated client-to-server request: -32602 (Invalid params)'
+    url: https://modelcontextprotocol.io/specification/draft/client/elicitation
+  - check: sep-2260-client-error-unassociated-roots
+    text: 'Clients SHOULD return standard JSON-RPC errors for common failure cases: Server sends a roots/list request with no associated client-to-server request: -32602 (Invalid params)'
+    url: https://modelcontextprotocol.io/specification/draft/client/roots
+  - check: sep-2260-client-error-unassociated-sampling
+    text: 'Clients SHOULD return errors for common failure cases: Sampling request not associated with a client-to-server request: -32602 (Invalid params)'
     url: https://modelcontextprotocol.io/specification/draft/client/sampling
 
-  # elicitation.mdx — Request association requirement
+  - text: 'These messages MUST relate to the originating client request.'
+    excluded: 'Semantic association ("relate to") is not protocol-observable. The harness cannot determine whether a server request conceptually relates to the client request without understanding application logic.'
+  - text: 'Implementations SHOULD prefer transport-level SSE keepalive mechanisms for idle-connection maintenance.'
+    excluded: 'Implementation preference for keepalive mechanism choice; not observable on the wire.'
+    url: https://modelcontextprotocol.io/specification/draft/basic/utilities/ping
   - text: 'Servers MUST send server-to-client requests (such as roots/list, sampling/createMessage, or elicitation/create) only in association with an originating client request (e.g., during tools/call, resources/read, or prompts/get processing).'
-    excluded: 'Server-side behavioral constraint. The conformance harness already operates within originating client request context. Testing violation requires a deliberately misbehaving server.'
+    excluded: 'Server-side behavioral constraint. The observable wire violation (sending on standalone streams) is covered by sep-2260-no-standalone-restricted-requests. The broader semantic association is not protocol-observable.'
     url: https://modelcontextprotocol.io/specification/draft/client/elicitation
-
-  # roots.mdx — Request association requirement (same warning block as elicitation)
+  - text: 'Standalone server-initiated requests of these types on independent communication streams (unrelated to any client request) are not supported and MUST NOT be implemented.'
+    excluded: 'Same observable behavior as sep-2260-no-standalone-restricted-requests stated from the feature pages. Duplicates the transports.mdx requirement.'
+    url: https://modelcontextprotocol.io/specification/draft/client/elicitation
+  - text: 'Servers MUST send sampling/createMessage requests only in association with an originating client request (e.g., during tools/call, resources/read, or prompts/get processing).'
+    excluded: 'Server-side behavioral constraint. Observable portion covered by sep-2260-no-standalone-restricted-requests.'
+    url: https://modelcontextprotocol.io/specification/draft/client/sampling
+  - text: 'Standalone server-initiated sampling on independent communication streams (unrelated to any client request) is not supported and MUST NOT be implemented.'
+    excluded: 'Same observable behavior as sep-2260-no-standalone-restricted-requests stated from the sampling page.'
+    url: https://modelcontextprotocol.io/specification/draft/client/sampling
   - text: 'Servers MUST send server-to-client requests (such as roots/list, sampling/createMessage, or elicitation/create) only in association with an originating client request (e.g., during tools/call, resources/read, or prompts/get processing).'
-    excluded: 'Server-side behavioral constraint, duplicated in roots.mdx. Same rationale: conformance harness operates within client request context.'
+    excluded: 'Duplicate of elicitation.mdx requirement, stated in roots.mdx. Same rationale.'
+    url: https://modelcontextprotocol.io/specification/draft/client/roots
+  - text: 'Standalone server-initiated requests of these types on independent communication streams (unrelated to any client request) are not supported and MUST NOT be implemented.'
+    excluded: 'Duplicate of elicitation.mdx MUST NOT requirement, stated in roots.mdx.'
     url: https://modelcontextprotocol.io/specification/draft/client/roots
