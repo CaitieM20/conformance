@@ -114,17 +114,20 @@ handlers['tools/list'] = () => ({
   tools: [
     {
       name: 'test_input_required_result_elicitation',
-      description: 'Test tool: returns InputRequiredResult with elicitation request',
+      description:
+        'Test tool: returns InputRequiredResult with elicitation request',
       inputSchema: { type: 'object' as const, properties: {} }
     },
     {
       name: 'test_input_required_result_sampling',
-      description: 'Test tool: returns InputRequiredResult with sampling request',
+      description:
+        'Test tool: returns InputRequiredResult with sampling request',
       inputSchema: { type: 'object' as const, properties: {} }
     },
     {
       name: 'test_input_required_result_list_roots',
-      description: 'Test tool: returns InputRequiredResult with list roots request',
+      description:
+        'Test tool: returns InputRequiredResult with list roots request',
       inputSchema: { type: 'object' as const, properties: {} }
     },
     {
@@ -134,12 +137,14 @@ handlers['tools/list'] = () => ({
     },
     {
       name: 'test_input_required_result_multiple_inputs',
-      description: 'Test tool: returns InputRequiredResult with multiple input requests',
+      description:
+        'Test tool: returns InputRequiredResult with multiple input requests',
       inputSchema: { type: 'object' as const, properties: {} }
     },
     {
       name: 'test_input_required_result_multi_round',
-      description: 'Test tool: returns InputRequiredResult across multiple rounds',
+      description:
+        'Test tool: returns InputRequiredResult across multiple rounds',
       inputSchema: { type: 'object' as const, properties: {} }
     },
     {
@@ -159,7 +164,8 @@ handlers['prompts/list'] = () => ({
   prompts: [
     {
       name: 'test_input_required_result_prompt',
-      description: 'Test prompt: returns InputRequiredResult with elicitation request'
+      description:
+        'Test prompt: returns InputRequiredResult with elicitation request'
     }
   ]
 });
@@ -169,7 +175,9 @@ handlers['prompts/get'] = (params) => {
     throw { code: -32602, message: `Unknown prompt: ${params.name}` };
   }
 
-  const inputResponses = params.inputResponses as Record<string, unknown> | undefined;
+  const inputResponses = params.inputResponses as
+    | Record<string, unknown>
+    | undefined;
 
   if (inputResponses?.['user_context']) {
     const context = getInputText(inputResponses['user_context'], 'context');
@@ -203,7 +211,9 @@ handlers['prompts/get'] = (params) => {
 
 handlers['tools/call'] = (params) => {
   const toolName = params.name as string;
-  const inputResponses = params.inputResponses as Record<string, unknown> | undefined;
+  const inputResponses = params.inputResponses as
+    | Record<string, unknown>
+    | undefined;
   const requestState = params.requestState as string | undefined;
 
   switch (toolName) {
@@ -232,7 +242,10 @@ handlers['tools/call'] = (params) => {
 
     case 'test_input_required_result_sampling': {
       if (inputResponses?.['sample_request']) {
-        const sample = inputResponses['sample_request'] as Record<string, unknown>;
+        const sample = inputResponses['sample_request'] as Record<
+          string,
+          unknown
+        >;
         const content = sample.content as Record<string, unknown> | undefined;
         return {
           content: [
@@ -250,7 +263,13 @@ handlers['tools/call'] = (params) => {
             method: 'sampling/createMessage',
             params: {
               messages: [
-                { role: 'user', content: { type: 'text', text: 'What is the capital of France?' } }
+                {
+                  role: 'user',
+                  content: {
+                    type: 'text',
+                    text: 'What is the capital of France?'
+                  }
+                }
               ],
               maxTokens: 100
             }
@@ -261,9 +280,14 @@ handlers['tools/call'] = (params) => {
 
     case 'test_input_required_result_list_roots': {
       if (inputResponses?.['roots_request']) {
-        const rootsResult = inputResponses['roots_request'] as Record<string, unknown>;
+        const rootsResult = inputResponses['roots_request'] as Record<
+          string,
+          unknown
+        >;
         const roots = Array.isArray(rootsResult.roots) ? rootsResult.roots : [];
-        return { content: [{ type: 'text', text: `Found ${roots.length} root(s)` }] };
+        return {
+          content: [{ type: 'text', text: `Found ${roots.length} root(s)` }]
+        };
       }
       return {
         resultType: 'input_required',
@@ -276,9 +300,14 @@ handlers['tools/call'] = (params) => {
     case 'test_input_required_result_request_state': {
       if (requestState && inputResponses?.['confirm']) {
         const state = JSON.parse(requestState) as Record<string, unknown>;
-        const ok = (inputResponses['confirm'] as Record<string, unknown>)?.content as Record<string, unknown> | undefined;
+        const ok = (inputResponses['confirm'] as Record<string, unknown>)
+          ?.content as Record<string, unknown> | undefined;
         if (state.kind === 'request-state' && ok?.ok === true) {
-          return { content: [{ type: 'text', text: 'state-ok: requestState validated' }] };
+          return {
+            content: [
+              { type: 'text', text: 'state-ok: requestState validated' }
+            ]
+          };
         }
       }
       return {
@@ -296,7 +325,10 @@ handlers['tools/call'] = (params) => {
             }
           }
         },
-        requestState: JSON.stringify({ kind: 'request-state', nonce: randomUUID() })
+        requestState: JSON.stringify({
+          kind: 'request-state',
+          nonce: randomUUID()
+        })
       };
     }
 
@@ -310,12 +342,27 @@ handlers['tools/call'] = (params) => {
         const state = JSON.parse(requestState) as Record<string, unknown>;
         if (state.kind === 'multiple-inputs') {
           const name = getInputText(inputResponses['user_name'], 'name');
-          const greetingContent = (inputResponses['greeting'] as Record<string, unknown>).content as Record<string, unknown> | undefined;
-          const greeting = typeof greetingContent?.text === 'string' ? greetingContent.text : 'Hello there!';
-          const rootsResult = inputResponses['client_roots'] as Record<string, unknown>;
-          const roots = Array.isArray(rootsResult.roots) ? rootsResult.roots : [];
+          const greetingContent = (
+            inputResponses['greeting'] as Record<string, unknown>
+          ).content as Record<string, unknown> | undefined;
+          const greeting =
+            typeof greetingContent?.text === 'string'
+              ? greetingContent.text
+              : 'Hello there!';
+          const rootsResult = inputResponses['client_roots'] as Record<
+            string,
+            unknown
+          >;
+          const roots = Array.isArray(rootsResult.roots)
+            ? rootsResult.roots
+            : [];
           return {
-            content: [{ type: 'text', text: `Name: ${name}; Greeting: ${greeting}; Roots: ${roots.length}` }]
+            content: [
+              {
+                type: 'text',
+                text: `Name: ${name}; Greeting: ${greeting}; Roots: ${roots.length}`
+              }
+            ]
           };
         }
       }
@@ -336,13 +383,21 @@ handlers['tools/call'] = (params) => {
           greeting: {
             method: 'sampling/createMessage',
             params: {
-              messages: [{ role: 'user', content: { type: 'text', text: 'Generate a greeting' } }],
+              messages: [
+                {
+                  role: 'user',
+                  content: { type: 'text', text: 'Generate a greeting' }
+                }
+              ],
               maxTokens: 50
             }
           },
           client_roots: { method: 'roots/list', params: {} }
         },
-        requestState: JSON.stringify({ kind: 'multiple-inputs', nonce: randomUUID() })
+        requestState: JSON.stringify({
+          kind: 'multiple-inputs',
+          nonce: randomUUID()
+        })
       };
     }
 
@@ -393,7 +448,12 @@ handlers['tools/call'] = (params) => {
         const name = typeof state.name === 'string' ? state.name : 'friend';
         const color = getInputText(inputResponses['step2'], 'color');
         return {
-          content: [{ type: 'text', text: `Multi-round complete for ${name} who likes ${color}` }]
+          content: [
+            {
+              type: 'text',
+              text: `Multi-round complete for ${name} who likes ${color}`
+            }
+          ]
         };
       }
 
@@ -419,10 +479,17 @@ handlers['tools/call'] = (params) => {
     case 'test_input_required_result_task': {
       const taskMeta = params.task as Record<string, unknown> | undefined;
       if (!taskMeta) {
-        return { content: [{ type: 'text', text: 'Call with task metadata for task workflow' }] };
+        return {
+          content: [
+            { type: 'text', text: 'Call with task metadata for task workflow' }
+          ]
+        };
       }
 
-      const task = createTask('basic', typeof taskMeta.ttl === 'number' ? taskMeta.ttl : undefined);
+      const task = createTask(
+        'basic',
+        typeof taskMeta.ttl === 'number' ? taskMeta.ttl : undefined
+      );
       task.inputRequests = {
         user_input: {
           method: 'elicitation/create',
@@ -454,7 +521,10 @@ handlers['tools/call'] = (params) => {
         return { content: [{ type: 'text', text: 'Call with task metadata' }] };
       }
 
-      const task = createTask('multi', typeof taskMeta.ttl === 'number' ? taskMeta.ttl : undefined);
+      const task = createTask(
+        'multi',
+        typeof taskMeta.ttl === 'number' ? taskMeta.ttl : undefined
+      );
       task.inputRequests = {
         first_input: {
           method: 'elicitation/create',
@@ -501,16 +571,22 @@ handlers['tasks/result'] = (params) => {
     return { resultType: 'input_required', inputRequests: task.inputRequests };
   }
   if (task.status === 'completed') {
-    return { content: [{ type: 'text', text: task.finalContent ?? 'Task completed' }] };
+    return {
+      content: [{ type: 'text', text: task.finalContent ?? 'Task completed' }]
+    };
   }
   return { status: task.status };
 };
 
 handlers['tasks/input_response'] = (params) => {
   const meta = params._meta as Record<string, unknown> | undefined;
-  const relatedTask = meta?.['io.modelcontextprotocol/related-task'] as Record<string, unknown> | undefined;
+  const relatedTask = meta?.['io.modelcontextprotocol/related-task'] as
+    | Record<string, unknown>
+    | undefined;
   const taskId = relatedTask?.taskId as string | undefined;
-  const inputResponses = params.inputResponses as Record<string, unknown> | undefined;
+  const inputResponses = params.inputResponses as
+    | Record<string, unknown>
+    | undefined;
 
   if (!taskId) throw { code: -32602, message: 'Missing related task metadata' };
 
@@ -519,7 +595,9 @@ handlers['tasks/input_response'] = (params) => {
 
   const expectedKeys = Object.keys(task.inputRequests ?? {});
   const providedKeys = Object.keys(inputResponses ?? {});
-  const hasAllExpected = expectedKeys.length > 0 && expectedKeys.every((key) => providedKeys.includes(key));
+  const hasAllExpected =
+    expectedKeys.length > 0 &&
+    expectedKeys.every((key) => providedKeys.includes(key));
 
   if (!hasAllExpected) {
     updateTask(task, { status: 'input_required' });
@@ -553,10 +631,16 @@ handlers['tasks/input_response'] = (params) => {
 
   if (task.kind === 'basic') {
     const userInput = getInputText(inputResponses?.['user_input'], 'input');
-    updateTask(task, { status: 'completed', finalContent: `Task completed with input: ${userInput}` });
+    updateTask(task, {
+      status: 'completed',
+      finalContent: `Task completed with input: ${userInput}`
+    });
   } else {
     const finalInput = getInputText(inputResponses?.['second_input'], 'input');
-    updateTask(task, { status: 'completed', finalContent: `Task completed after second input: ${finalInput}` });
+    updateTask(task, {
+      status: 'completed',
+      finalContent: `Task completed after second input: ${finalInput}`
+    });
   }
 
   return ackResult(taskId);
@@ -617,5 +701,7 @@ app.post('/mcp', async (req, res) => {
 
 const PORT = parseInt(process.env.PORT || '3010', 10);
 app.listen(PORT, () => {
-  console.log(`SEP-2322 MRTR reference server running on http://localhost:${PORT}/mcp`);
+  console.log(
+    `SEP-2322 MRTR reference server running on http://localhost:${PORT}/mcp`
+  );
 });
