@@ -1148,3 +1148,518 @@ Implement a prompt named \`test_input_required_result_prompt\` that requires eli
     return checks;
   }
 }
+
+// ─── A10: ResultType Included ────────────────────────────────────────────────
+
+export class InputRequiredResultResultTypeScenario implements ClientScenario {
+  name = 'input-required-result-result-type';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
+  specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
+  description = `Test that server explicitly includes resultType field in InputRequiredResult responses (SEP-2322).
+
+**Server Implementation Requirements:**
+
+Uses the same tool as A1: \`test_input_required_result_elicitation\`.
+
+This scenario verifies that the resultType field is explicitly present in the response (not just inferred).`;
+
+  async run(serverUrl: string): Promise<ConformanceCheck[]> {
+    const checks: ConformanceCheck[] = [];
+
+    try {
+      const r1 = await sendRpc(serverUrl, 'tools/call', {
+        name: 'test_input_required_result_elicitation',
+        arguments: {}
+      });
+
+      const r1Result = r1.result;
+      const errors: string[] = [];
+
+      if (r1.error) {
+        errors.push(`JSON-RPC error: ${r1.error.message}`);
+      } else if (!r1Result) {
+        errors.push('No result in response');
+      } else if (!('resultType' in r1Result)) {
+        errors.push(
+          'resultType field is missing from response. Servers MUST include resultType to indicate the type of the result.'
+        );
+      } else if (r1Result.resultType !== 'input_required') {
+        errors.push(
+          `Expected resultType "input_required", got "${r1Result.resultType}"`
+        );
+      }
+
+      checks.push({
+        id: 'sep-2322-result-type-included',
+        name: 'ResultTypeIncluded',
+        description:
+          'Server includes resultType field in InputRequiredResult response',
+        status: errors.length === 0 ? 'SUCCESS' : 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: errors.length > 0 ? errors.join('; ') : undefined,
+        specReferences: MRTR_SPEC_REFERENCES,
+        details: { result: r1Result }
+      });
+    } catch (error) {
+      checks.push({
+        id: 'sep-2322-result-type-included',
+        name: 'ResultTypeIncluded',
+        description:
+          'Server includes resultType field in InputRequiredResult response',
+        status: 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
+        specReferences: MRTR_SPEC_REFERENCES
+      });
+    }
+
+    return checks;
+  }
+}
+
+// ─── A11: Unsupported Methods ────────────────────────────────────────────────
+
+export class InputRequiredResultUnsupportedMethodsScenario
+  implements ClientScenario
+{
+  name = 'input-required-result-unsupported-methods';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
+  specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
+  description = `Test that server does NOT return InputRequiredResult on unsupported methods (SEP-2322).
+
+Servers MUST NOT send InputRequiredResult responses on any client requests other than the supported ones (prompts/get, resources/read, tools/call, tasks/result).`;
+
+  async run(serverUrl: string): Promise<ConformanceCheck[]> {
+    const checks: ConformanceCheck[] = [];
+    const errors: string[] = [];
+
+    const unsupportedMethods = ['tools/list', 'prompts/list'];
+
+    try {
+      for (const method of unsupportedMethods) {
+        const resp = await sendRpc(serverUrl, method, {});
+        if (
+          resp.result &&
+          (resp.result as Record<string, unknown>).resultType ===
+            'input_required'
+        ) {
+          errors.push(
+            `${method} returned InputRequiredResult, but it is not a supported method for MRTR`
+          );
+        }
+      }
+
+      checks.push({
+        id: 'sep-2322-not-on-unsupported-requests',
+        name: 'NotOnUnsupportedRequests',
+        description:
+          'Server does not return InputRequiredResult on unsupported methods',
+        status: errors.length === 0 ? 'SUCCESS' : 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: errors.length > 0 ? errors.join('; ') : undefined,
+        specReferences: MRTR_SPEC_REFERENCES
+      });
+    } catch (error) {
+      checks.push({
+        id: 'sep-2322-not-on-unsupported-requests',
+        name: 'NotOnUnsupportedRequests',
+        description:
+          'Server does not return InputRequiredResult on unsupported methods',
+        status: 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
+        specReferences: MRTR_SPEC_REFERENCES
+      });
+    }
+
+    return checks;
+  }
+}
+
+// ─── A12: Tampered State Rejection ───────────────────────────────────────────
+
+export class InputRequiredResultTamperedStateScenario
+  implements ClientScenario
+{
+  name = 'input-required-result-tampered-state';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
+  specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
+  description = `Test that server rejects tampered requestState (SEP-2322).
+
+**Server Implementation Requirements:**
+
+Implement a tool named \`test_input_required_result_tampered_state\` (no arguments required).
+
+**Behavior (Round 1):** When called without inputResponses, return an InputRequiredResult with
+integrity-protected requestState (e.g. HMAC-signed).
+
+**Behavior (Round 2 - tampered):** When called with a modified/tampered requestState, return a
+JSON-RPC error (code -32602 or similar) indicating integrity check failure.`;
+
+  async run(serverUrl: string): Promise<ConformanceCheck[]> {
+    const checks: ConformanceCheck[] = [];
+
+    try {
+      // Round 1: Get valid InputRequiredResult with signed requestState
+      const r1 = await sendRpc(serverUrl, 'tools/call', {
+        name: 'test_input_required_result_tampered_state',
+        arguments: {}
+      });
+
+      const r1Result = r1.result;
+      if (r1.error || !r1Result || !isInputRequiredResult(r1Result)) {
+        checks.push({
+          id: 'sep-2322-reject-tampered-state',
+          name: 'RejectTamperedState',
+          description:
+            'Server rejects tampered requestState with error',
+          status: 'FAILURE',
+          timestamp: new Date().toISOString(),
+          errorMessage:
+            'Prerequisite failed: could not get initial InputRequiredResult with requestState',
+          specReferences: MRTR_SPEC_REFERENCES
+        });
+        return checks;
+      }
+
+      if (!r1Result.requestState) {
+        checks.push({
+          id: 'sep-2322-reject-tampered-state',
+          name: 'RejectTamperedState',
+          description:
+            'Server rejects tampered requestState with error',
+          status: 'FAILURE',
+          timestamp: new Date().toISOString(),
+          errorMessage:
+            'Server did not include requestState in InputRequiredResult',
+          specReferences: MRTR_SPEC_REFERENCES
+        });
+        return checks;
+      }
+
+      // Round 2: Tamper with the requestState and retry
+      const tamperedState = r1Result.requestState + '-TAMPERED';
+      const inputKey = Object.keys(r1Result.inputRequests!)[0];
+      const r2 = await sendRpc(serverUrl, 'tools/call', {
+        name: 'test_input_required_result_tampered_state',
+        arguments: {},
+        inputResponses: {
+          [inputKey]: mockElicitResponse({ ok: true })
+        },
+        requestState: tamperedState
+      });
+
+      const errors: string[] = [];
+
+      if (!r2.error && r2.result && isCompleteResult(r2.result)) {
+        errors.push(
+          'Server accepted tampered requestState and returned complete result. ' +
+            'Servers MUST reject state that fails integrity verification.'
+        );
+      }
+
+      checks.push({
+        id: 'sep-2322-reject-tampered-state',
+        name: 'RejectTamperedState',
+        description:
+          'Server rejects tampered requestState with error',
+        status: errors.length === 0 ? 'SUCCESS' : 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: errors.length > 0 ? errors.join('; ') : undefined,
+        specReferences: MRTR_SPEC_REFERENCES,
+        details: { tamperedResponse: r2.result ?? r2.error }
+      });
+    } catch (error) {
+      checks.push({
+        id: 'sep-2322-reject-tampered-state',
+        name: 'RejectTamperedState',
+        description:
+          'Server rejects tampered requestState with error',
+        status: 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
+        specReferences: MRTR_SPEC_REFERENCES
+      });
+    }
+
+    return checks;
+  }
+}
+
+// ─── A13: Respect Client Capabilities ────────────────────────────────────────
+
+export class InputRequiredResultCapabilityCheckScenario
+  implements ClientScenario
+{
+  name = 'input-required-result-capability-check';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
+  specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
+  description = `Test that server only sends inputRequests for capabilities the client declared (SEP-2322).
+
+**Server Implementation Requirements:**
+
+Implement a tool named \`test_input_required_result_capabilities\` (no arguments required).
+
+**Behavior:** Read client capabilities from \`_meta['io.modelcontextprotocol/clientCapabilities']\`.
+Only include inputRequests for methods the client supports. For example, if the client declares
+\`sampling: {}\` but NOT \`elicitation\`, only include \`sampling/createMessage\` inputRequests.`;
+
+  async run(serverUrl: string): Promise<ConformanceCheck[]> {
+    const checks: ConformanceCheck[] = [];
+
+    try {
+      // Send request with only sampling capability (no elicitation)
+      const resp = await sendRpc(serverUrl, 'tools/call', {
+        name: 'test_input_required_result_capabilities',
+        arguments: {},
+        _meta: {
+          'io.modelcontextprotocol/clientCapabilities': {
+            sampling: {}
+            // deliberately omitting elicitation
+          }
+        }
+      });
+
+      const result = resp.result;
+      const errors: string[] = [];
+
+      if (resp.error) {
+        errors.push(`JSON-RPC error: ${resp.error.message}`);
+      } else if (!result) {
+        errors.push('No result in response');
+      } else if (isInputRequiredResult(result) && result.inputRequests) {
+        // Check that no elicitation requests are included
+        for (const [key, req] of Object.entries(result.inputRequests)) {
+          if (req.method === 'elicitation/create') {
+            errors.push(
+              `Server included elicitation/create inputRequest (key: "${key}") ` +
+                'but client did not declare elicitation capability'
+            );
+          }
+        }
+        // Verify sampling IS present (server should use available capabilities)
+        const hasSampling = Object.values(result.inputRequests).some(
+          (req) => req.method === 'sampling/createMessage'
+        );
+        if (!hasSampling) {
+          errors.push(
+            'Server did not include sampling/createMessage even though client declared sampling capability'
+          );
+        }
+      } else if (isCompleteResult(result)) {
+        errors.push(
+          'Server returned complete result; expected InputRequiredResult with sampling-only inputRequests'
+        );
+      }
+
+      checks.push({
+        id: 'sep-2322-respect-client-capabilities',
+        name: 'RespectClientCapabilities',
+        description:
+          'Server only includes inputRequests for declared client capabilities',
+        status: errors.length === 0 ? 'SUCCESS' : 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: errors.length > 0 ? errors.join('; ') : undefined,
+        specReferences: MRTR_SPEC_REFERENCES,
+        details: { result }
+      });
+    } catch (error) {
+      checks.push({
+        id: 'sep-2322-respect-client-capabilities',
+        name: 'RespectClientCapabilities',
+        description:
+          'Server only includes inputRequests for declared client capabilities',
+        status: 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
+        specReferences: MRTR_SPEC_REFERENCES
+      });
+    }
+
+    return checks;
+  }
+}
+
+// ─── A14: Ignore Unexpected Params ───────────────────────────────────────────
+
+export class InputRequiredResultIgnoreExtraParamsScenario
+  implements ClientScenario
+{
+  name = 'input-required-result-ignore-extra-params';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
+  specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
+  description = `Test that server ignores unexpected extra parameters in InputResponses (SEP-2322).
+
+**Server Implementation Requirements:**
+
+Uses the same tool as A1: \`test_input_required_result_elicitation\`.
+
+This scenario sends correct inputResponses PLUS extra unrecognized keys. The server SHOULD ignore
+the extra keys and complete normally.`;
+
+  async run(serverUrl: string): Promise<ConformanceCheck[]> {
+    const checks: ConformanceCheck[] = [];
+
+    try {
+      // Send retry with correct inputResponses + extra unknown keys
+      const resp = await sendRpc(serverUrl, 'tools/call', {
+        name: 'test_input_required_result_elicitation',
+        arguments: {},
+        inputResponses: {
+          user_name: mockElicitResponse({ name: 'Alice' }),
+          unknown_extra_key: { action: 'accept', content: { foo: 'bar' } },
+          another_unexpected: { action: 'accept', content: { baz: 123 } }
+        }
+      });
+
+      const result = resp.result;
+      const errors: string[] = [];
+
+      if (resp.error) {
+        errors.push(
+          `Server returned JSON-RPC error when extra params were included: ${resp.error.message}. ` +
+            'Servers SHOULD ignore unrecognized information.'
+        );
+      } else if (!result) {
+        errors.push('No result in response');
+      } else if (!isCompleteResult(result)) {
+        errors.push(
+          'Server did not return complete result when valid inputResponses were provided alongside extra keys. ' +
+            'Servers SHOULD ignore information they do not recognize.'
+        );
+      }
+
+      checks.push({
+        id: 'sep-2322-ignore-unexpected-params',
+        name: 'IgnoreUnexpectedParams',
+        description:
+          'Server ignores extra unrecognized keys in inputResponses',
+        status: errors.length === 0 ? 'SUCCESS' : 'WARNING',
+        timestamp: new Date().toISOString(),
+        errorMessage: errors.length > 0 ? errors.join('; ') : undefined,
+        specReferences: MRTR_SPEC_REFERENCES,
+        details: { result }
+      });
+    } catch (error) {
+      checks.push({
+        id: 'sep-2322-ignore-unexpected-params',
+        name: 'IgnoreUnexpectedParams',
+        description:
+          'Server ignores extra unrecognized keys in inputResponses',
+        status: 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
+        specReferences: MRTR_SPEC_REFERENCES
+      });
+    }
+
+    return checks;
+  }
+}
+
+// ─── A15: Validate InputResponses ────────────────────────────────────────────
+
+export class InputRequiredResultValidateInputScenario
+  implements ClientScenario
+{
+  name = 'input-required-result-validate-input';
+  readonly source = { introducedIn: DRAFT_PROTOCOL_VERSION } as const;
+  specVersions: SpecVersion[] = [DRAFT_PROTOCOL_VERSION];
+  description = `Test that server validates InputResponses and returns appropriate errors (SEP-2322).
+
+**Server Implementation Requirements:**
+
+Uses the same tool as A1: \`test_input_required_result_elicitation\`.
+
+This scenario sends completely invalid inputResponses structures. The server SHOULD validate them
+and return a JSON-RPC error or a new InputRequiredResult.`;
+
+  async run(serverUrl: string): Promise<ConformanceCheck[]> {
+    const checks: ConformanceCheck[] = [];
+
+    try {
+      // Send inputResponses with invalid structure (number instead of object for the response)
+      const resp = await sendRpc(serverUrl, 'tools/call', {
+        name: 'test_input_required_result_elicitation',
+        arguments: {},
+        inputResponses: {
+          user_name: 12345 as unknown as Record<string, unknown>
+        }
+      });
+
+      const validateErrors: string[] = [];
+
+      // Server should either error or re-request — NOT return a complete result
+      // with the invalid data silently accepted
+      if (
+        !resp.error &&
+        resp.result &&
+        isCompleteResult(resp.result)
+      ) {
+        validateErrors.push(
+          'Server accepted invalid inputResponses (number instead of object) and returned complete result. ' +
+            'Servers SHOULD validate InputResponses data.'
+        );
+      }
+
+      checks.push({
+        id: 'sep-2322-validate-input-responses',
+        name: 'ValidateInputResponses',
+        description:
+          'Server validates InputResponses structure',
+        status: validateErrors.length === 0 ? 'SUCCESS' : 'WARNING',
+        timestamp: new Date().toISOString(),
+        errorMessage:
+          validateErrors.length > 0 ? validateErrors.join('; ') : undefined,
+        specReferences: MRTR_SPEC_REFERENCES,
+        details: { result: resp.result, error: resp.error }
+      });
+
+      // Also test: send completely malformed inputResponses (null)
+      const resp2 = await sendRpc(serverUrl, 'tools/call', {
+        name: 'test_input_required_result_elicitation',
+        arguments: {},
+        inputResponses: null as unknown as Record<string, unknown>
+      });
+
+      const protocolErrors: string[] = [];
+
+      if (
+        !resp2.error &&
+        resp2.result &&
+        isCompleteResult(resp2.result)
+      ) {
+        protocolErrors.push(
+          'Server accepted null inputResponses and returned complete result. ' +
+            'Protocol errors SHOULD return a JSON-RPC error response.'
+        );
+      }
+
+      checks.push({
+        id: 'sep-2322-error-on-protocol-error',
+        name: 'ErrorOnProtocolError',
+        description:
+          'Server returns JSON-RPC error for protocol-level input errors',
+        status: protocolErrors.length === 0 ? 'SUCCESS' : 'WARNING',
+        timestamp: new Date().toISOString(),
+        errorMessage:
+          protocolErrors.length > 0 ? protocolErrors.join('; ') : undefined,
+        specReferences: MRTR_SPEC_REFERENCES,
+        details: { result: resp2.result, error: resp2.error }
+      });
+    } catch (error) {
+      checks.push({
+        id: 'sep-2322-validate-input-responses',
+        name: 'ValidateInputResponses',
+        description:
+          'Server validates InputResponses structure',
+        status: 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage: `Failed: ${error instanceof Error ? error.message : String(error)}`,
+        specReferences: MRTR_SPEC_REFERENCES
+      });
+    }
+
+    return checks;
+  }
+}

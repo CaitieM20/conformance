@@ -8,7 +8,7 @@
  */
 
 import express from 'express';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHmac } from 'crypto';
 
 interface InputRequest {
   method: string;
@@ -89,6 +89,32 @@ function getInputText(inputResponse: unknown, field: string): string {
   return typeof value === 'string' ? value : 'unknown';
 }
 
+// --- HMAC-based requestState for integrity tests ---
+
+const STATE_SECRET = 'conformance-test-secret-' + randomUUID();
+
+function signState(payload: Record<string, unknown>): string {
+  const data = JSON.stringify(payload);
+  const hmac = createHmac('sha256', STATE_SECRET).update(data).digest('hex');
+  return JSON.stringify({ data, hmac });
+}
+
+function verifyState(raw: string): Record<string, unknown> | null {
+  try {
+    const { data, hmac } = JSON.parse(raw) as {
+      data: string;
+      hmac: string;
+    };
+    const expected = createHmac('sha256', STATE_SECRET)
+      .update(data)
+      .digest('hex');
+    if (hmac !== expected) return null;
+    return JSON.parse(data) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 // --- JSON-RPC dispatch ---
 
 type Handler = (params: Record<string, unknown>) => unknown | Promise<unknown>;
@@ -155,6 +181,18 @@ handlers['tools/list'] = () => ({
     {
       name: 'test_input_required_result_task_multi_input',
       description: 'Test tool: task-based multi-round InputRequiredResult',
+      inputSchema: { type: 'object' as const, properties: {} }
+    },
+    {
+      name: 'test_input_required_result_tampered_state',
+      description:
+        'Test tool: uses HMAC-signed requestState to test integrity rejection',
+      inputSchema: { type: 'object' as const, properties: {} }
+    },
+    {
+      name: 'test_input_required_result_capabilities',
+      description:
+        'Test tool: returns inputRequests only for capabilities the client declared',
       inputSchema: { type: 'object' as const, properties: {} }
     }
   ]
@@ -548,6 +586,108 @@ handlers['tools/call'] = (params) => {
       }, 100);
 
       return { task: taskView(task) };
+    }
+
+    case 'test_input_required_result_tampered_state': {
+      if (requestState) {
+        const verified = verifyState(requestState);
+        if (!verified) {
+          throw {
+            code: -32602,
+            message: 'requestState integrity check failed'
+          };
+        }
+        if (verified.kind === 'tamper-test' && inputResponses?.['confirm']) {
+          return {
+            content: [
+              { type: 'text', text: 'integrity-ok: state verified' }
+            ]
+          };
+        }
+      }
+      return {
+        resultType: 'input_required',
+        inputRequests: {
+          confirm: {
+            method: 'elicitation/create',
+            params: {
+              message: 'Please confirm',
+              requestedSchema: {
+                type: 'object',
+                properties: { ok: { type: 'boolean' } },
+                required: ['ok']
+              }
+            }
+          }
+        },
+        requestState: signState({ kind: 'tamper-test', nonce: randomUUID() })
+      };
+    }
+
+    case 'test_input_required_result_capabilities': {
+      const meta = params._meta as Record<string, unknown> | undefined;
+      const clientCaps = meta?.[
+        'io.modelcontextprotocol/clientCapabilities'
+      ] as Record<string, unknown> | undefined;
+
+      const inputRequests: Record<string, InputRequest> = {};
+
+      if (clientCaps?.elicitation) {
+        inputRequests['elicit_input'] = {
+          method: 'elicitation/create',
+          params: {
+            message: 'Elicitation input',
+            requestedSchema: {
+              type: 'object',
+              properties: { value: { type: 'string' } },
+              required: ['value']
+            }
+          }
+        };
+      }
+
+      if (clientCaps?.sampling) {
+        inputRequests['sample_input'] = {
+          method: 'sampling/createMessage',
+          params: {
+            messages: [
+              {
+                role: 'user',
+                content: { type: 'text', text: 'Sample request' }
+              }
+            ],
+            maxTokens: 50
+          }
+        };
+      }
+
+      if (inputResponses && Object.keys(inputResponses).length > 0) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `capabilities-ok: received ${Object.keys(inputResponses).join(',')}`
+            }
+          ]
+        };
+      }
+
+      if (Object.keys(inputRequests).length === 0) {
+        return {
+          content: [
+            { type: 'text', text: 'No supported capabilities declared' }
+          ]
+        };
+      }
+
+      return {
+        resultType: 'input_required',
+        inputRequests,
+        requestState: signState({
+          kind: 'capabilities-test',
+          nonce: randomUUID()
+        })
+      };
     }
 
     default:

@@ -849,6 +849,21 @@ async function runMRTRClient(serverUrl: string): Promise<void> {
     logger.debug('test_mrtr_no_state: MRTR flow completed');
   }
 
+  // Tool 3: test_mrtr_no_result_type — returns result without resultType field
+  // Client must treat it as complete (default) and NOT retry
+  const r3 = await sendRpc('tools/call', {
+    name: 'test_mrtr_no_result_type',
+    arguments: {}
+  });
+
+  const r3Result = r3.result as Record<string, unknown> | undefined;
+  if (r3Result && !r3Result.resultType) {
+    // No resultType means default to "complete" — do nothing, don't retry
+    logger.debug(
+      'test_mrtr_no_result_type: result has no resultType, treating as complete'
+    );
+  }
+
   logger.debug('MRTR client scenario completed');
 }
 
