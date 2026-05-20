@@ -13,9 +13,11 @@ import { InitializeScenario } from './client/initialize';
 import { ToolsCallScenario } from './client/tools_call';
 import { ElicitationClientDefaultsScenario } from './client/elicitation-defaults';
 import { SSERetryScenario } from './client/sse-retry';
+import { RequestMetadataScenario } from './client/request-metadata';
 
 // Import all new server test scenarios
 import { ServerInitializeScenario } from './server/lifecycle';
+import { ServerStatelessScenario } from './server/stateless';
 
 import {
   PingScenario,
@@ -77,6 +79,11 @@ import {
 } from './server/input-required-result';
 
 import {
+  HttpHeaderValidationScenario,
+  HttpCustomHeaderServerValidationScenario
+} from './server/http-standard-headers';
+
+import {
   authScenariosList,
   backcompatScenariosList,
   draftScenariosList,
@@ -84,6 +91,12 @@ import {
 } from './client/auth/index';
 import { listMetadataScenarios } from './client/auth/discovery-metadata';
 import { AuthorizationServerMetadataEndpointScenario } from './authorization-server/authorization-server-metadata';
+
+import { HttpStandardHeadersScenario } from './client/http-standard-headers';
+import {
+  HttpCustomHeadersScenario,
+  HttpInvalidToolHeadersScenario
+} from './client/http-custom-headers';
 
 // Pending client scenarios (not yet fully tested/implemented)
 const pendingClientScenariosList: ClientScenario[] = [
@@ -94,6 +107,20 @@ const pendingClientScenariosList: ClientScenario[] = [
 
   // On hold until server-side SSE improvements are made
   // https://github.com/modelcontextprotocol/typescript-sdk/pull/1129
+  new ServerSSEPollingScenario(),
+
+  // HTTP Standardization (SEP-2243)
+  // Pending until the everything-server fully implements SEP-2243
+  // header validation (case-insensitive names, whitespace trimming, -32001 error code)
+  new HttpHeaderValidationScenario(),
+  new HttpCustomHeaderServerValidationScenario(),
+  new ServerSSEPollingScenario(),
+
+  // HTTP Standardization (SEP-2243)
+  // Pending until the everything-server fully implements SEP-2243
+  // header validation (case-insensitive names, whitespace trimming, -32001 error code)
+  new HttpHeaderValidationScenario(),
+  new HttpCustomHeaderServerValidationScenario(),
   new ServerSSEPollingScenario(),
 
   // InputRequiredResult scenarios (SEP-2322) — pending in the everything-server
@@ -113,6 +140,7 @@ const pendingClientScenariosList: ClientScenario[] = [
 const allClientScenariosList: ClientScenario[] = [
   // Lifecycle scenarios
   new ServerInitializeScenario(),
+  new ServerStatelessScenario(),
 
   // Utilities scenarios
   new LoggingSetLevelScenario(),
@@ -166,6 +194,16 @@ const allClientScenariosList: ClientScenario[] = [
   // Security scenarios
   new DNSRebindingProtectionScenario(),
 
+  // HTTP Standardization scenarios (SEP-2243)
+  new HttpHeaderValidationScenario(),
+  new HttpCustomHeaderServerValidationScenario(),
+  new DNSRebindingProtectionScenario(),
+
+  // HTTP Standardization scenarios (SEP-2243)
+  new HttpHeaderValidationScenario(),
+  new HttpCustomHeaderServerValidationScenario(),
+  new DNSRebindingProtectionScenario(),
+
   // InputRequiredResult scenarios (SEP-2322)
   new InputRequiredResultBasicElicitationScenario(),
   new InputRequiredResultBasicSamplingScenario(),
@@ -214,10 +252,16 @@ const scenariosList: Scenario[] = [
   new ToolsCallScenario(),
   new ElicitationClientDefaultsScenario(),
   new SSERetryScenario(),
+  new RequestMetadataScenario(),
   ...authScenariosList,
   ...backcompatScenariosList,
   ...draftScenariosList,
-  ...extensionScenariosList
+  ...extensionScenariosList,
+
+  // HTTP Standardization scenarios (SEP-2243)
+  new HttpStandardHeadersScenario(),
+  new HttpCustomHeadersScenario(),
+  new HttpInvalidToolHeadersScenario()
 ];
 
 // Core scenarios (tier 1 requirements)
