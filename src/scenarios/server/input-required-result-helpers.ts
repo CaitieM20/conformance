@@ -35,8 +35,7 @@ export function isInputRequiredResult(
 ): result is InputRequiredResultData {
   if (!result) return false;
   if (result.resultType === 'input_required') return true;
-  // Also detect by presence of InputRequiredResult fields
-  return 'inputRequests' in result || 'requestState' in result;
+  return false;
 }
 
 /**
@@ -48,8 +47,7 @@ export function isCompleteResult(
 ): boolean {
   if (!result) return false;
   if (result.resultType === 'complete') return true;
-  if (!('resultType' in result)) return true;
-  return !isInputRequiredResult(result);
+  return false;
 }
 
 /**

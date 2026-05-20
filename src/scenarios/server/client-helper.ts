@@ -114,10 +114,6 @@ export class RawMcpSession {
       Accept: 'application/json, text/event-stream'
     };
 
-    if (this.sessionId) {
-      headers['Mcp-Session-Id'] = this.sessionId;
-    }
-
     const body = JSON.stringify({
       jsonrpc: '2.0',
       id,
