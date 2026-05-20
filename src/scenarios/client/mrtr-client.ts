@@ -52,6 +52,16 @@ const TOOLS = [
       properties: {},
       required: [] as string[]
     }
+  },
+  {
+    name: 'test_mrtr_no_result_type',
+    description:
+      'Test tool: returns a result without resultType. Client must treat it as complete (default).',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {},
+      required: [] as string[]
+    }
   }
 ];
 
@@ -107,6 +117,11 @@ function createMRTRServer(checks: ConformanceCheck[]): express.Application {
 
         if (toolName === 'test_mrtr_unrelated') {
           handleUnrelated(inputResponses, requestState, checks, res, id);
+          return;
+        }
+
+        if (toolName === 'test_mrtr_no_result_type') {
+          handleNoResultType(id, inputResponses, checks, res);
           return;
         }
 
@@ -363,6 +378,54 @@ function createMRTRServer(checks: ConformanceCheck[]): express.Application {
     });
   }
 
+  function handleNoResultType(
+    id: string | number,
+    inputResponses: Record<string, unknown> | undefined,
+    checks: ConformanceCheck[],
+    res: Response
+  ) {
+    // If the client retries this tool, it means it did NOT treat the result as complete
+    if (inputResponses) {
+      checks.push({
+        id: 'sep-2322-default-result-type-complete',
+        name: 'DefaultResultTypeComplete',
+        description:
+          'Client MUST assume resultType "complete" when not specified',
+        status: 'FAILURE',
+        timestamp: new Date().toISOString(),
+        errorMessage:
+          'Client retried with inputResponses even though the result had no resultType (should default to complete)',
+        specReferences: MRTR_SPEC_REFERENCES
+      });
+      res.json({
+        jsonrpc: '2.0',
+        id,
+        result: { content: [{ type: 'text', text: 'unexpected-retry' }] }
+      });
+      return;
+    }
+
+    // Return a result WITHOUT resultType — client should treat as complete
+    checks.push({
+      id: 'sep-2322-default-result-type-complete',
+      name: 'DefaultResultTypeComplete',
+      description:
+        'Client MUST assume resultType "complete" when not specified',
+      status: 'SUCCESS',
+      timestamp: new Date().toISOString(),
+      specReferences: MRTR_SPEC_REFERENCES
+    });
+
+    res.json({
+      jsonrpc: '2.0',
+      id,
+      result: {
+        // Deliberately NO resultType field
+        content: [{ type: 'text', text: 'no-result-type-test-ok' }]
+      }
+    });
+  }
+
   return app;
 }
 
@@ -397,7 +460,8 @@ export class MRTRClientScenario implements Scenario {
       'mrtr-client-request-state-echoed',
       'mrtr-client-jsonrpc-id-different',
       'mrtr-client-no-state-omitted',
-      'mrtr-client-parallel-isolation'
+      'mrtr-client-parallel-isolation',
+      'sep-2322-default-result-type-complete'
     ];
 
     for (const slug of expectedSlugs) {

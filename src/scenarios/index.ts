@@ -76,7 +76,13 @@ import {
   InputRequiredResultMultipleInputRequestsScenario,
   InputRequiredResultMultiRoundScenario,
   InputRequiredResultMissingInputResponseScenario,
-  InputRequiredResultNonToolRequestScenario
+  InputRequiredResultNonToolRequestScenario,
+  InputRequiredResultResultTypeScenario,
+  InputRequiredResultUnsupportedMethodsScenario,
+  InputRequiredResultTamperedStateScenario,
+  InputRequiredResultCapabilityCheckScenario,
+  InputRequiredResultIgnoreExtraParamsScenario,
+  InputRequiredResultValidateInputScenario
 } from './server/input-required-result';
 
 import {
@@ -134,7 +140,13 @@ const pendingClientScenariosList: ClientScenario[] = [
   new InputRequiredResultMultipleInputRequestsScenario(),
   new InputRequiredResultMultiRoundScenario(),
   new InputRequiredResultMissingInputResponseScenario(),
-  new InputRequiredResultNonToolRequestScenario()
+  new InputRequiredResultNonToolRequestScenario(),
+  new InputRequiredResultResultTypeScenario(),
+  new InputRequiredResultUnsupportedMethodsScenario(),
+  new InputRequiredResultTamperedStateScenario(),
+  new InputRequiredResultCapabilityCheckScenario(),
+  new InputRequiredResultIgnoreExtraParamsScenario(),
+  new InputRequiredResultValidateInputScenario()
 ];
 
 // All client scenarios
@@ -213,7 +225,13 @@ const allClientScenariosList: ClientScenario[] = [
   new InputRequiredResultMultipleInputRequestsScenario(),
   new InputRequiredResultMultiRoundScenario(),
   new InputRequiredResultMissingInputResponseScenario(),
-  new InputRequiredResultNonToolRequestScenario()
+  new InputRequiredResultNonToolRequestScenario(),
+  new InputRequiredResultResultTypeScenario(),
+  new InputRequiredResultUnsupportedMethodsScenario(),
+  new InputRequiredResultTamperedStateScenario(),
+  new InputRequiredResultCapabilityCheckScenario(),
+  new InputRequiredResultIgnoreExtraParamsScenario(),
+  new InputRequiredResultValidateInputScenario()
 ];
 
 // Active client scenarios (excludes pending)
