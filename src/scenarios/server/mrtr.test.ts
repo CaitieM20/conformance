@@ -125,3 +125,56 @@ describe('SEP-2322 MRTR positive tests', () => {
     );
   }
 });
+
+describe('SEP-2322 MRTR negative tests', () => {
+  let serverProcess: ChildProcess | null = null;
+  const PORT = 3011;
+  const SERVER_URL = `http://localhost:${PORT}/mcp`;
+
+  beforeAll(async () => {
+    serverProcess = await startServer(
+      path.join(
+        process.cwd(),
+        'examples/servers/typescript/sep-2322-mrtr-broken-server.ts'
+      ),
+      PORT
+    );
+  }, 35000);
+
+  afterAll(async () => {
+    await stopServer(serverProcess);
+  });
+
+  it('emits FAILURE for sep-2322-result-type-included against server that omits resultType', async () => {
+    const scenario = new InputRequiredResultResultTypeScenario();
+    const checks = await scenario.run(SERVER_URL);
+
+    const resultTypeCheck = checks.find(
+      (c) => c.id === 'sep-2322-result-type-included'
+    );
+    expect(resultTypeCheck).toBeDefined();
+    expect(resultTypeCheck?.status).toBe('FAILURE');
+  }, 10000);
+
+  it('emits FAILURE for sep-2322-not-on-unsupported-requests against server returning InputRequiredResult on tools/list', async () => {
+    const scenario = new InputRequiredResultUnsupportedMethodsScenario();
+    const checks = await scenario.run(SERVER_URL);
+
+    const unsupportedCheck = checks.find(
+      (c) => c.id === 'sep-2322-not-on-unsupported-requests'
+    );
+    expect(unsupportedCheck).toBeDefined();
+    expect(unsupportedCheck?.status).toBe('FAILURE');
+  }, 10000);
+
+  it('emits FAILURE for sep-2322-reject-tampered-state against server that accepts tampered state', async () => {
+    const scenario = new InputRequiredResultTamperedStateScenario();
+    const checks = await scenario.run(SERVER_URL);
+
+    const tamperedCheck = checks.find(
+      (c) => c.id === 'sep-2322-reject-tampered-state'
+    );
+    expect(tamperedCheck).toBeDefined();
+    expect(tamperedCheck?.status).toBe('FAILURE');
+  }, 10000);
+});
