@@ -13,9 +13,11 @@ import { InitializeScenario } from './client/initialize';
 import { ToolsCallScenario } from './client/tools_call';
 import { ElicitationClientDefaultsScenario } from './client/elicitation-defaults';
 import { SSERetryScenario } from './client/sse-retry';
+import { RequestMetadataScenario } from './client/request-metadata';
 
 // Import all new server test scenarios
 import { ServerInitializeScenario } from './server/lifecycle';
+import { ServerStatelessScenario } from './server/stateless';
 
 import {
   PingScenario,
@@ -66,6 +68,11 @@ import { DNSRebindingProtectionScenario } from './server/dns-rebinding';
 import { CachingScenario } from './server/caching';
 
 import {
+  HttpHeaderValidationScenario,
+  HttpCustomHeaderServerValidationScenario
+} from './server/http-standard-headers';
+
+import {
   authScenariosList,
   backcompatScenariosList,
   draftScenariosList,
@@ -73,6 +80,12 @@ import {
 } from './client/auth/index';
 import { listMetadataScenarios } from './client/auth/discovery-metadata';
 import { AuthorizationServerMetadataEndpointScenario } from './authorization-server/authorization-server-metadata';
+
+import { HttpStandardHeadersScenario } from './client/http-standard-headers';
+import {
+  HttpCustomHeadersScenario,
+  HttpInvalidToolHeadersScenario
+} from './client/http-custom-headers';
 
 // Pending client scenarios (not yet fully tested/implemented)
 const pendingClientScenariosList: ClientScenario[] = [
@@ -83,13 +96,20 @@ const pendingClientScenariosList: ClientScenario[] = [
 
   // On hold until server-side SSE improvements are made
   // https://github.com/modelcontextprotocol/typescript-sdk/pull/1129
-  new ServerSSEPollingScenario()
+  new ServerSSEPollingScenario(),
+
+  // HTTP Standardization (SEP-2243)
+  // Pending until the everything-server fully implements SEP-2243
+  // header validation (case-insensitive names, whitespace trimming, -32001 error code)
+  new HttpHeaderValidationScenario(),
+  new HttpCustomHeaderServerValidationScenario()
 ];
 
 // All client scenarios
 const allClientScenariosList: ClientScenario[] = [
   // Lifecycle scenarios
   new ServerInitializeScenario(),
+  new ServerStatelessScenario(),
 
   // Utilities scenarios
   new LoggingSetLevelScenario(),
@@ -144,7 +164,10 @@ const allClientScenariosList: ClientScenario[] = [
   new DNSRebindingProtectionScenario(),
 
   // Caching scenarios (SEP-2549)
-  new CachingScenario()
+  new CachingScenario(),
+  // HTTP Standardization scenarios (SEP-2243)
+  new HttpHeaderValidationScenario(),
+  new HttpCustomHeaderServerValidationScenario()
 ];
 
 // Active client scenarios (excludes pending)
@@ -184,10 +207,16 @@ const scenariosList: Scenario[] = [
   new ToolsCallScenario(),
   new ElicitationClientDefaultsScenario(),
   new SSERetryScenario(),
+  new RequestMetadataScenario(),
   ...authScenariosList,
   ...backcompatScenariosList,
   ...draftScenariosList,
-  ...extensionScenariosList
+  ...extensionScenariosList,
+
+  // HTTP Standardization scenarios (SEP-2243)
+  new HttpStandardHeadersScenario(),
+  new HttpCustomHeadersScenario(),
+  new HttpInvalidToolHeadersScenario()
 ];
 
 // Core scenarios (tier 1 requirements)
