@@ -341,8 +341,8 @@ Servers MUST include \`ttlMs\` (integer >= 0) and \`cacheScope\` ("public" or "p
     } catch (error) {
       // Connection-level failure — push a single failure check
       checks.push({
-        id: 'sep-2549-tools-list-caching-hints',
-        name: 'ToolsListCachingHints',
+        id: 'sep-2549-caching-connection',
+        name: 'CachingConnection',
         description: 'Caching hints scenario failed to connect',
         status: 'FAILURE',
         timestamp: new Date().toISOString(),
