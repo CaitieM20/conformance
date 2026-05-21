@@ -121,14 +121,6 @@ const pendingClientScenariosList: ClientScenario[] = [
   // header validation (case-insensitive names, whitespace trimming, -32001 error code)
   new HttpHeaderValidationScenario(),
   new HttpCustomHeaderServerValidationScenario(),
-  new ServerSSEPollingScenario(),
-
-  // HTTP Standardization (SEP-2243)
-  // Pending until the everything-server fully implements SEP-2243
-  // header validation (case-insensitive names, whitespace trimming, -32001 error code)
-  new HttpHeaderValidationScenario(),
-  new HttpCustomHeaderServerValidationScenario(),
-  new ServerSSEPollingScenario(),
 
   // InputRequiredResult scenarios (SEP-2322) — pending in the everything-server
   // because McpServer.registerTool cannot return resultType: "input_required".
@@ -210,12 +202,6 @@ const allClientScenariosList: ClientScenario[] = [
   // HTTP Standardization scenarios (SEP-2243)
   new HttpHeaderValidationScenario(),
   new HttpCustomHeaderServerValidationScenario(),
-  new DNSRebindingProtectionScenario(),
-
-  // HTTP Standardization scenarios (SEP-2243)
-  new HttpHeaderValidationScenario(),
-  new HttpCustomHeaderServerValidationScenario(),
-  new DNSRebindingProtectionScenario(),
 
   // InputRequiredResult scenarios (SEP-2322)
   new InputRequiredResultBasicElicitationScenario(),

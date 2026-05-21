@@ -103,7 +103,7 @@ Implement a tool named \`test_input_required_result_elicitation\` (no arguments 
       }
 
       checks.push({
-        id: 'input-required-result-elicitation-incomplete',
+        id: 'sep-2322-elicitation-incomplete',
         name: 'InputRequiredResultElicitationIncomplete',
         description:
           'Server returns InputRequiredResult with elicitation inputRequest',
@@ -148,7 +148,7 @@ Implement a tool named \`test_input_required_result_elicitation\` (no arguments 
         }
 
         checks.push({
-          id: 'input-required-result-elicitation-complete',
+          id: 'sep-2322-elicitation-complete',
           name: 'InputRequiredResultElicitationComplete',
           description:
             'Server returns complete result after retry with inputResponses',
@@ -161,7 +161,7 @@ Implement a tool named \`test_input_required_result_elicitation\` (no arguments 
       }
     } catch (error) {
       checks.push({
-        id: 'input-required-result-elicitation-incomplete',
+        id: 'sep-2322-elicitation-incomplete',
         name: 'InputRequiredResultElicitationIncomplete',
         description:
           'Server returns InputRequiredResult with elicitation inputRequest',
@@ -250,7 +250,7 @@ Implement a tool named \`test_input_required_result_sampling\` (no arguments req
       }
 
       checks.push({
-        id: 'input-required-result-sampling-incomplete',
+        id: 'sep-2322-sampling-incomplete',
         name: 'InputRequiredResultSamplingIncomplete',
         description:
           'Server returns InputRequiredResult with sampling inputRequest',
@@ -289,7 +289,7 @@ Implement a tool named \`test_input_required_result_sampling\` (no arguments req
         }
 
         checks.push({
-          id: 'input-required-result-sampling-complete',
+          id: 'sep-2322-sampling-complete',
           name: 'InputRequiredResultSamplingComplete',
           description:
             'Server returns complete result after retry with sampling response',
@@ -302,7 +302,7 @@ Implement a tool named \`test_input_required_result_sampling\` (no arguments req
       }
     } catch (error) {
       checks.push({
-        id: 'input-required-result-sampling-incomplete',
+        id: 'sep-2322-sampling-incomplete',
         name: 'InputRequiredResultSamplingIncomplete',
         description:
           'Server returns InputRequiredResult with sampling inputRequest',
@@ -385,7 +385,7 @@ Implement a tool named \`test_input_required_result_list_roots\` (no arguments r
       }
 
       checks.push({
-        id: 'input-required-result-list-roots-incomplete',
+        id: 'sep-2322-list-roots-incomplete',
         name: 'InputRequiredResultListRootsIncomplete',
         description:
           'Server returns InputRequiredResult with roots/list inputRequest',
@@ -424,7 +424,7 @@ Implement a tool named \`test_input_required_result_list_roots\` (no arguments r
         }
 
         checks.push({
-          id: 'input-required-result-list-roots-complete',
+          id: 'sep-2322-list-roots-complete',
           name: 'InputRequiredResultListRootsComplete',
           description:
             'Server returns complete result after retry with roots response',
@@ -437,7 +437,7 @@ Implement a tool named \`test_input_required_result_list_roots\` (no arguments r
       }
     } catch (error) {
       checks.push({
-        id: 'input-required-result-list-roots-incomplete',
+        id: 'sep-2322-list-roots-incomplete',
         name: 'InputRequiredResultListRootsIncomplete',
         description:
           'Server returns InputRequiredResult with roots/list inputRequest',
@@ -518,7 +518,7 @@ Implement a tool named \`test_input_required_result_request_state\` (no argument
       }
 
       checks.push({
-        id: 'input-required-result-request-state-incomplete',
+        id: 'sep-2322-request-state-incomplete',
         name: 'InputRequiredResultRequestStateIncomplete',
         description:
           'Server returns InputRequiredResult with both inputRequests and requestState',
@@ -566,7 +566,7 @@ Implement a tool named \`test_input_required_result_request_state\` (no argument
         }
 
         checks.push({
-          id: 'input-required-result-request-state-complete',
+          id: 'sep-2322-request-state-complete',
           name: 'InputRequiredResultRequestStateComplete',
           description:
             'Server validates echoed requestState and returns complete result',
@@ -579,7 +579,7 @@ Implement a tool named \`test_input_required_result_request_state\` (no argument
       }
     } catch (error) {
       checks.push({
-        id: 'input-required-result-request-state-incomplete',
+        id: 'sep-2322-request-state-incomplete',
         name: 'InputRequiredResultRequestStateIncomplete',
         description:
           'Server returns InputRequiredResult with both inputRequests and requestState',
@@ -693,7 +693,7 @@ Implement a tool named \`test_input_required_result_multiple_inputs\` (no argume
       }
 
       checks.push({
-        id: 'input-required-result-multiple-inputs-incomplete',
+        id: 'sep-2322-multiple-inputs-incomplete',
         name: 'InputRequiredResultMultipleInputsIncomplete',
         description:
           'Server returns InputRequiredResult with multiple inputRequests of different types',
@@ -740,7 +740,7 @@ Implement a tool named \`test_input_required_result_multiple_inputs\` (no argume
         }
 
         checks.push({
-          id: 'input-required-result-multiple-inputs-complete',
+          id: 'sep-2322-multiple-inputs-complete',
           name: 'InputRequiredResultMultipleInputsComplete',
           description:
             'Server returns complete result after all inputResponses are provided',
@@ -753,7 +753,7 @@ Implement a tool named \`test_input_required_result_multiple_inputs\` (no argume
       }
     } catch (error) {
       checks.push({
-        id: 'input-required-result-multiple-inputs-incomplete',
+        id: 'sep-2322-multiple-inputs-incomplete',
         name: 'InputRequiredResultMultipleInputsIncomplete',
         description:
           'Server returns InputRequiredResult with multiple inputRequests of different types',
@@ -850,7 +850,7 @@ Implement a tool named \`test_input_required_result_multi_round\` (no arguments 
       }
 
       checks.push({
-        id: 'input-required-result-multi-round-r1',
+        id: 'sep-2322-multi-round-r1',
         name: 'InputRequiredResultMultiRoundR1',
         description:
           'Round 1: Server returns InputRequiredResult with requestState',
@@ -893,7 +893,7 @@ Implement a tool named \`test_input_required_result_multi_round\` (no arguments 
       }
 
       checks.push({
-        id: 'input-required-result-multi-round-r2',
+        id: 'sep-2322-multi-round-r2',
         name: 'InputRequiredResultMultiRoundR2',
         description:
           'Round 2: Server returns another InputRequiredResult with updated requestState',
@@ -924,7 +924,7 @@ Implement a tool named \`test_input_required_result_multi_round\` (no arguments 
         !r3.error && r3Result != null && isCompleteResult(r3Result);
 
       checks.push({
-        id: 'input-required-result-multi-round-r3',
+        id: 'sep-2322-multi-round-r3',
         name: 'InputRequiredResultMultiRoundR3',
         description: 'Round 3: Server returns complete result',
         status: round3Complete ? 'SUCCESS' : 'FAILURE',
@@ -937,7 +937,7 @@ Implement a tool named \`test_input_required_result_multi_round\` (no arguments 
       });
     } catch (error) {
       checks.push({
-        id: 'input-required-result-multi-round-r1',
+        id: 'sep-2322-multi-round-r1',
         name: 'InputRequiredResultMultiRoundR1',
         description:
           'Round 1: Server returns InputRequiredResult with requestState',
@@ -998,7 +998,7 @@ Use the same tool as A1: \`test_input_required_result_elicitation\`.
       }
 
       checks.push({
-        id: 'input-required-result-missing-response-rerequests',
+        id: 'sep-2322-missing-response-rerequests',
         name: 'InputRequiredResultMissingResponseRerequests',
         description:
           'Server re-requests missing inputResponses via new InputRequiredResult',
@@ -1010,7 +1010,7 @@ Use the same tool as A1: \`test_input_required_result_elicitation\`.
       });
     } catch (error) {
       checks.push({
-        id: 'input-required-result-missing-response-rerequests',
+        id: 'sep-2322-missing-response-rerequests',
         name: 'InputRequiredResultMissingResponseRerequests',
         description:
           'Server re-requests missing inputResponses via new InputRequiredResult',
@@ -1081,7 +1081,7 @@ Implement a prompt named \`test_input_required_result_prompt\` that requires eli
       }
 
       checks.push({
-        id: 'input-required-result-non-tool-incomplete',
+        id: 'sep-2322-non-tool-incomplete',
         name: 'InputRequiredResultNonToolIncomplete',
         description:
           'prompts/get returns InputRequiredResult with inputRequests',
@@ -1121,7 +1121,7 @@ Implement a prompt named \`test_input_required_result_prompt\` that requires eli
         }
 
         checks.push({
-          id: 'input-required-result-non-tool-complete',
+          id: 'sep-2322-non-tool-complete',
           name: 'InputRequiredResultNonToolComplete',
           description:
             'prompts/get returns complete GetPromptResult after retry with inputResponses',
@@ -1134,7 +1134,7 @@ Implement a prompt named \`test_input_required_result_prompt\` that requires eli
       }
     } catch (error) {
       checks.push({
-        id: 'input-required-result-non-tool-incomplete',
+        id: 'sep-2322-non-tool-incomplete',
         name: 'InputRequiredResultNonToolIncomplete',
         description:
           'prompts/get returns InputRequiredResult with inputRequests',

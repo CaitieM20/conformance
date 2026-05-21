@@ -41,7 +41,8 @@ export async function sendRpc(
       },
       'io.modelcontextprotocol/clientCapabilities': {
         sampling: {},
-        elicitation: {}
+        elicitation: {},
+        roots: { listChanged: true }
       },
       ...(params?._meta as Record<string, unknown> | undefined)
     }
@@ -160,6 +161,6 @@ export function mockListRootsResponse(): Record<string, unknown> {
 export const MRTR_SPEC_REFERENCES = [
   {
     id: 'SEP-2322',
-    url: 'https://github.com/modelcontextprotocol/specification/pull/2322'
+    url: 'https://modelcontextprotocol.io/specification/draft/basic/utilities/mrtr'
   }
 ];
