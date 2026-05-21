@@ -157,11 +157,16 @@ app.post('/mcp', (req, res) => {
     res.json({
       jsonrpc: '2.0',
       id: body.id,
-      error: { code: error.code || -32603, message: error.message || 'Internal error' }
+      error: {
+        code: error.code || -32603,
+        message: error.message || 'Internal error'
+      }
     });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`sep-2322-mrtr-broken-server running on http://localhost:${PORT}/mcp`);
+  console.log(
+    `sep-2322-mrtr-broken-server running on http://localhost:${PORT}/mcp`
+  );
 });

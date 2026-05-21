@@ -39,14 +39,18 @@ const MRTR_STATE_SECRET = 'conformance-mrtr-secret-' + randomUUID();
 
 function signMrtState(payload: Record<string, unknown>): string {
   const data = JSON.stringify(payload);
-  const hmac = createHmac('sha256', MRTR_STATE_SECRET).update(data).digest('hex');
+  const hmac = createHmac('sha256', MRTR_STATE_SECRET)
+    .update(data)
+    .digest('hex');
   return JSON.stringify({ data, hmac });
 }
 
 function verifyMrtState(raw: string): Record<string, unknown> | null {
   try {
     const { data, hmac } = JSON.parse(raw) as { data: string; hmac: string };
-    const expected = createHmac('sha256', MRTR_STATE_SECRET).update(data).digest('hex');
+    const expected = createHmac('sha256', MRTR_STATE_SECRET)
+      .update(data)
+      .digest('hex');
     if (hmac !== expected) return null;
     return JSON.parse(data) as Record<string, unknown>;
   } catch {
@@ -55,7 +59,8 @@ function verifyMrtState(raw: string): Record<string, unknown> | null {
 }
 
 function getMrtInputText(inputResponse: unknown, field: string): string {
-  const content = (inputResponse as Record<string, unknown> | undefined)?.content as Record<string, unknown> | undefined;
+  const content = (inputResponse as Record<string, unknown> | undefined)
+    ?.content as Record<string, unknown> | undefined;
   const value = content?.[field];
   return typeof value === 'string' ? value : 'unknown';
 }
@@ -1167,27 +1172,32 @@ app.post('/mcp', async (req, res) => {
             },
             {
               name: 'test_input_required_result_elicitation',
-              description: 'MRTR: returns InputRequiredResult with elicitation request',
+              description:
+                'MRTR: returns InputRequiredResult with elicitation request',
               inputSchema: { type: 'object', properties: {} }
             },
             {
               name: 'test_input_required_result_sampling',
-              description: 'MRTR: returns InputRequiredResult with sampling request',
+              description:
+                'MRTR: returns InputRequiredResult with sampling request',
               inputSchema: { type: 'object', properties: {} }
             },
             {
               name: 'test_input_required_result_list_roots',
-              description: 'MRTR: returns InputRequiredResult with roots/list request',
+              description:
+                'MRTR: returns InputRequiredResult with roots/list request',
               inputSchema: { type: 'object', properties: {} }
             },
             {
               name: 'test_input_required_result_request_state',
-              description: 'MRTR: returns InputRequiredResult with requestState',
+              description:
+                'MRTR: returns InputRequiredResult with requestState',
               inputSchema: { type: 'object', properties: {} }
             },
             {
               name: 'test_input_required_result_multiple_inputs',
-              description: 'MRTR: returns InputRequiredResult with multiple input requests',
+              description:
+                'MRTR: returns InputRequiredResult with multiple input requests',
               inputSchema: { type: 'object', properties: {} }
             },
             {
@@ -1202,7 +1212,8 @@ app.post('/mcp', async (req, res) => {
             },
             {
               name: 'test_input_required_result_capabilities',
-              description: 'MRTR: respects client capabilities in inputRequests',
+              description:
+                'MRTR: respects client capabilities in inputRequests',
               inputSchema: { type: 'object', properties: {} }
             }
           ]
@@ -1229,14 +1240,27 @@ app.post('/mcp', async (req, res) => {
     // SEP-2322 MRTR: prompts/get handler
     if (method === 'prompts/get') {
       if (params.name === 'test_input_required_result_prompt') {
-        const inputResponses = params.inputResponses as Record<string, unknown> | undefined;
+        const inputResponses = params.inputResponses as
+          | Record<string, unknown>
+          | undefined;
         if (inputResponses?.['user_context']) {
-          const context = getMrtInputText(inputResponses['user_context'], 'context');
+          const context = getMrtInputText(
+            inputResponses['user_context'],
+            'context'
+          );
           return res.json({
             jsonrpc: '2.0',
             id,
             result: {
-              messages: [{ role: 'user', content: { type: 'text', text: `Prompt with context: ${context}` } }]
+              messages: [
+                {
+                  role: 'user',
+                  content: {
+                    type: 'text',
+                    text: `Prompt with context: ${context}`
+                  }
+                }
+              ]
             }
           });
         }
@@ -1265,7 +1289,9 @@ app.post('/mcp', async (req, res) => {
 
     if (method === 'tools/call') {
       const name = params.name;
-      const inputResponses = params.inputResponses as Record<string, unknown> | undefined;
+      const inputResponses = params.inputResponses as
+        | Record<string, unknown>
+        | undefined;
       const requestState = params.requestState as string | undefined;
 
       if (name === 'test_missing_capability') {
@@ -1295,16 +1321,28 @@ app.post('/mcp', async (req, res) => {
       if (name === 'test_input_required_result_elicitation') {
         if (inputResponses?.['user_name']) {
           const userName = getMrtInputText(inputResponses['user_name'], 'name');
-          return res.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: `Hello, ${userName}!` }] } });
+          return res.json({
+            jsonrpc: '2.0',
+            id,
+            result: { content: [{ type: 'text', text: `Hello, ${userName}!` }] }
+          });
         }
         return res.json({
-          jsonrpc: '2.0', id,
+          jsonrpc: '2.0',
+          id,
           result: {
             resultType: 'input_required',
             inputRequests: {
               user_name: {
                 method: 'elicitation/create',
-                params: { message: 'What is your name?', requestedSchema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } }
+                params: {
+                  message: 'What is your name?',
+                  requestedSchema: {
+                    type: 'object',
+                    properties: { name: { type: 'string' } },
+                    required: ['name']
+                  }
+                }
               }
             }
           }
@@ -1313,18 +1351,44 @@ app.post('/mcp', async (req, res) => {
 
       if (name === 'test_input_required_result_sampling') {
         if (inputResponses?.['sample_request']) {
-          const sample = inputResponses['sample_request'] as Record<string, unknown>;
+          const sample = inputResponses['sample_request'] as Record<
+            string,
+            unknown
+          >;
           const content = sample.content as Record<string, unknown> | undefined;
-          return res.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: `Sampling result: ${typeof content?.text === 'string' ? content.text : 'no response'}` }] } });
+          return res.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `Sampling result: ${typeof content?.text === 'string' ? content.text : 'no response'}`
+                }
+              ]
+            }
+          });
         }
         return res.json({
-          jsonrpc: '2.0', id,
+          jsonrpc: '2.0',
+          id,
           result: {
             resultType: 'input_required',
             inputRequests: {
               sample_request: {
                 method: 'sampling/createMessage',
-                params: { messages: [{ role: 'user', content: { type: 'text', text: 'What is the capital of France?' } }], maxTokens: 100 }
+                params: {
+                  messages: [
+                    {
+                      role: 'user',
+                      content: {
+                        type: 'text',
+                        text: 'What is the capital of France?'
+                      }
+                    }
+                  ],
+                  maxTokens: 100
+                }
               }
             }
           }
@@ -1333,15 +1397,29 @@ app.post('/mcp', async (req, res) => {
 
       if (name === 'test_input_required_result_list_roots') {
         if (inputResponses?.['roots_request']) {
-          const rootsResult = inputResponses['roots_request'] as Record<string, unknown>;
-          const roots = Array.isArray(rootsResult.roots) ? rootsResult.roots : [];
-          return res.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: `Found ${roots.length} root(s)` }] } });
+          const rootsResult = inputResponses['roots_request'] as Record<
+            string,
+            unknown
+          >;
+          const roots = Array.isArray(rootsResult.roots)
+            ? rootsResult.roots
+            : [];
+          return res.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [{ type: 'text', text: `Found ${roots.length} root(s)` }]
+            }
+          });
         }
         return res.json({
-          jsonrpc: '2.0', id,
+          jsonrpc: '2.0',
+          id,
           result: {
             resultType: 'input_required',
-            inputRequests: { roots_request: { method: 'roots/list', params: {} } }
+            inputRequests: {
+              roots_request: { method: 'roots/list', params: {} }
+            }
           }
         });
       }
@@ -1349,48 +1427,122 @@ app.post('/mcp', async (req, res) => {
       if (name === 'test_input_required_result_request_state') {
         if (requestState && inputResponses?.['confirm']) {
           const state = JSON.parse(requestState) as Record<string, unknown>;
-          const ok = (inputResponses['confirm'] as Record<string, unknown>)?.content as Record<string, unknown> | undefined;
+          const ok = (inputResponses['confirm'] as Record<string, unknown>)
+            ?.content as Record<string, unknown> | undefined;
           if (state.kind === 'request-state' && ok?.ok === true) {
-            return res.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: 'state-ok: requestState validated' }] } });
+            return res.json({
+              jsonrpc: '2.0',
+              id,
+              result: {
+                content: [
+                  { type: 'text', text: 'state-ok: requestState validated' }
+                ]
+              }
+            });
           }
         }
         return res.json({
-          jsonrpc: '2.0', id,
+          jsonrpc: '2.0',
+          id,
           result: {
             resultType: 'input_required',
             inputRequests: {
               confirm: {
                 method: 'elicitation/create',
-                params: { message: 'Please confirm', requestedSchema: { type: 'object', properties: { ok: { type: 'boolean' } }, required: ['ok'] } }
+                params: {
+                  message: 'Please confirm',
+                  requestedSchema: {
+                    type: 'object',
+                    properties: { ok: { type: 'boolean' } },
+                    required: ['ok']
+                  }
+                }
               }
             },
-            requestState: JSON.stringify({ kind: 'request-state', nonce: randomUUID() })
+            requestState: JSON.stringify({
+              kind: 'request-state',
+              nonce: randomUUID()
+            })
           }
         });
       }
 
       if (name === 'test_input_required_result_multiple_inputs') {
-        if (requestState && inputResponses?.['user_name'] && inputResponses['greeting'] && inputResponses['client_roots']) {
+        if (
+          requestState &&
+          inputResponses?.['user_name'] &&
+          inputResponses['greeting'] &&
+          inputResponses['client_roots']
+        ) {
           const state = JSON.parse(requestState) as Record<string, unknown>;
           if (state.kind === 'multiple-inputs') {
-            const userName = getMrtInputText(inputResponses['user_name'], 'name');
-            const greetingContent = (inputResponses['greeting'] as Record<string, unknown>).content as Record<string, unknown> | undefined;
-            const greeting = typeof greetingContent?.text === 'string' ? greetingContent.text : 'Hello there!';
-            const rootsResult = inputResponses['client_roots'] as Record<string, unknown>;
-            const roots = Array.isArray(rootsResult.roots) ? rootsResult.roots : [];
-            return res.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: `Name: ${userName}; Greeting: ${greeting}; Roots: ${roots.length}` }] } });
+            const userName = getMrtInputText(
+              inputResponses['user_name'],
+              'name'
+            );
+            const greetingContent = (
+              inputResponses['greeting'] as Record<string, unknown>
+            ).content as Record<string, unknown> | undefined;
+            const greeting =
+              typeof greetingContent?.text === 'string'
+                ? greetingContent.text
+                : 'Hello there!';
+            const rootsResult = inputResponses['client_roots'] as Record<
+              string,
+              unknown
+            >;
+            const roots = Array.isArray(rootsResult.roots)
+              ? rootsResult.roots
+              : [];
+            return res.json({
+              jsonrpc: '2.0',
+              id,
+              result: {
+                content: [
+                  {
+                    type: 'text',
+                    text: `Name: ${userName}; Greeting: ${greeting}; Roots: ${roots.length}`
+                  }
+                ]
+              }
+            });
           }
         }
         return res.json({
-          jsonrpc: '2.0', id,
+          jsonrpc: '2.0',
+          id,
           result: {
             resultType: 'input_required',
             inputRequests: {
-              user_name: { method: 'elicitation/create', params: { message: 'What is your name?', requestedSchema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } } },
-              greeting: { method: 'sampling/createMessage', params: { messages: [{ role: 'user', content: { type: 'text', text: 'Generate a greeting' } }], maxTokens: 50 } },
+              user_name: {
+                method: 'elicitation/create',
+                params: {
+                  message: 'What is your name?',
+                  requestedSchema: {
+                    type: 'object',
+                    properties: { name: { type: 'string' } },
+                    required: ['name']
+                  }
+                }
+              },
+              greeting: {
+                method: 'sampling/createMessage',
+                params: {
+                  messages: [
+                    {
+                      role: 'user',
+                      content: { type: 'text', text: 'Generate a greeting' }
+                    }
+                  ],
+                  maxTokens: 50
+                }
+              },
               client_roots: { method: 'roots/list', params: {} }
             },
-            requestState: JSON.stringify({ kind: 'multiple-inputs', nonce: randomUUID() })
+            requestState: JSON.stringify({
+              kind: 'multiple-inputs',
+              nonce: randomUUID()
+            })
           }
         });
       }
@@ -1398,10 +1550,23 @@ app.post('/mcp', async (req, res) => {
       if (name === 'test_input_required_result_multi_round') {
         if (!requestState) {
           return res.json({
-            jsonrpc: '2.0', id,
+            jsonrpc: '2.0',
+            id,
             result: {
               resultType: 'input_required',
-              inputRequests: { step1: { method: 'elicitation/create', params: { message: 'Step 1: What is your name?', requestedSchema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } } } },
+              inputRequests: {
+                step1: {
+                  method: 'elicitation/create',
+                  params: {
+                    message: 'Step 1: What is your name?',
+                    requestedSchema: {
+                      type: 'object',
+                      properties: { name: { type: 'string' } },
+                      required: ['name']
+                    }
+                  }
+                }
+              },
               requestState: JSON.stringify({ round: 1, nonce: randomUUID() })
             }
           });
@@ -1410,25 +1575,67 @@ app.post('/mcp', async (req, res) => {
         if (state.round === 1 && inputResponses?.['step1']) {
           const userName = getMrtInputText(inputResponses['step1'], 'name');
           return res.json({
-            jsonrpc: '2.0', id,
+            jsonrpc: '2.0',
+            id,
             result: {
               resultType: 'input_required',
-              inputRequests: { step2: { method: 'elicitation/create', params: { message: 'Step 2: What is your favorite color?', requestedSchema: { type: 'object', properties: { color: { type: 'string' } }, required: ['color'] } } } },
-              requestState: JSON.stringify({ round: 2, name: userName, nonce: randomUUID() })
+              inputRequests: {
+                step2: {
+                  method: 'elicitation/create',
+                  params: {
+                    message: 'Step 2: What is your favorite color?',
+                    requestedSchema: {
+                      type: 'object',
+                      properties: { color: { type: 'string' } },
+                      required: ['color']
+                    }
+                  }
+                }
+              },
+              requestState: JSON.stringify({
+                round: 2,
+                name: userName,
+                nonce: randomUUID()
+              })
             }
           });
         }
         if (state.round === 2 && inputResponses?.['step2']) {
-          const userName = typeof state.name === 'string' ? state.name : 'friend';
+          const userName =
+            typeof state.name === 'string' ? state.name : 'friend';
           const color = getMrtInputText(inputResponses['step2'], 'color');
-          return res.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: `Multi-round complete for ${userName} who likes ${color}` }] } });
+          return res.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `Multi-round complete for ${userName} who likes ${color}`
+                }
+              ]
+            }
+          });
         }
         // Fallback: restart
         return res.json({
-          jsonrpc: '2.0', id,
+          jsonrpc: '2.0',
+          id,
           result: {
             resultType: 'input_required',
-            inputRequests: { step1: { method: 'elicitation/create', params: { message: 'Step 1: What is your name?', requestedSchema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } } } },
+            inputRequests: {
+              step1: {
+                method: 'elicitation/create',
+                params: {
+                  message: 'Step 1: What is your name?',
+                  requestedSchema: {
+                    type: 'object',
+                    properties: { name: { type: 'string' } },
+                    required: ['name']
+                  }
+                }
+              }
+            },
             requestState: JSON.stringify({ round: 1, nonce: randomUUID() })
           }
         });
@@ -1438,47 +1645,122 @@ app.post('/mcp', async (req, res) => {
         if (requestState) {
           const verified = verifyMrtState(requestState);
           if (!verified) {
-            return res.json({ jsonrpc: '2.0', id, error: { code: -32602, message: 'requestState integrity check failed' } });
+            return res.json({
+              jsonrpc: '2.0',
+              id,
+              error: {
+                code: -32602,
+                message: 'requestState integrity check failed'
+              }
+            });
           }
           if (verified.kind === 'tamper-test' && inputResponses?.['confirm']) {
-            return res.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: 'integrity-ok: state verified' }] } });
+            return res.json({
+              jsonrpc: '2.0',
+              id,
+              result: {
+                content: [
+                  { type: 'text', text: 'integrity-ok: state verified' }
+                ]
+              }
+            });
           }
         }
         return res.json({
-          jsonrpc: '2.0', id,
+          jsonrpc: '2.0',
+          id,
           result: {
             resultType: 'input_required',
             inputRequests: {
-              confirm: { method: 'elicitation/create', params: { message: 'Please confirm', requestedSchema: { type: 'object', properties: { ok: { type: 'boolean' } }, required: ['ok'] } } }
+              confirm: {
+                method: 'elicitation/create',
+                params: {
+                  message: 'Please confirm',
+                  requestedSchema: {
+                    type: 'object',
+                    properties: { ok: { type: 'boolean' } },
+                    required: ['ok']
+                  }
+                }
+              }
             },
-            requestState: signMrtState({ kind: 'tamper-test', nonce: randomUUID() })
+            requestState: signMrtState({
+              kind: 'tamper-test',
+              nonce: randomUUID()
+            })
           }
         });
       }
 
       if (name === 'test_input_required_result_capabilities') {
-        const clientCaps = meta['io.modelcontextprotocol/clientCapabilities'] as Record<string, unknown> | undefined;
+        const clientCaps = meta[
+          'io.modelcontextprotocol/clientCapabilities'
+        ] as Record<string, unknown> | undefined;
         const inputRequests: Record<string, unknown> = {};
 
         if (clientCaps?.elicitation) {
-          inputRequests['elicit_input'] = { method: 'elicitation/create', params: { message: 'Elicitation input', requestedSchema: { type: 'object', properties: { value: { type: 'string' } }, required: ['value'] } } };
+          inputRequests['elicit_input'] = {
+            method: 'elicitation/create',
+            params: {
+              message: 'Elicitation input',
+              requestedSchema: {
+                type: 'object',
+                properties: { value: { type: 'string' } },
+                required: ['value']
+              }
+            }
+          };
         }
         if (clientCaps?.sampling) {
-          inputRequests['sample_input'] = { method: 'sampling/createMessage', params: { messages: [{ role: 'user', content: { type: 'text', text: 'Sample request' } }], maxTokens: 50 } };
+          inputRequests['sample_input'] = {
+            method: 'sampling/createMessage',
+            params: {
+              messages: [
+                {
+                  role: 'user',
+                  content: { type: 'text', text: 'Sample request' }
+                }
+              ],
+              maxTokens: 50
+            }
+          };
         }
 
         if (inputResponses && Object.keys(inputResponses).length > 0) {
-          return res.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: `capabilities-ok: received ${Object.keys(inputResponses).join(',')}` }] } });
+          return res.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: `capabilities-ok: received ${Object.keys(inputResponses).join(',')}`
+                }
+              ]
+            }
+          });
         }
         if (Object.keys(inputRequests).length === 0) {
-          return res.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: 'No supported capabilities declared' }] } });
+          return res.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                { type: 'text', text: 'No supported capabilities declared' }
+              ]
+            }
+          });
         }
         return res.json({
-          jsonrpc: '2.0', id,
+          jsonrpc: '2.0',
+          id,
           result: {
             resultType: 'input_required',
             inputRequests,
-            requestState: signMrtState({ kind: 'capabilities-test', nonce: randomUUID() })
+            requestState: signMrtState({
+              kind: 'capabilities-test',
+              nonce: randomUUID()
+            })
           }
         });
       }
