@@ -25,7 +25,6 @@ import {
   ListPromptsRequestSchema,
   ListResourcesRequestSchema,
   ListResourceTemplatesRequestSchema,
-  ReadResourceRequestSchema,
   type ListToolsResult,
   type Tool
 } from '@modelcontextprotocol/sdk/types.js';
@@ -131,6 +130,50 @@ function createMcpServer() {
       }
     }
   );
+
+  // SEP-2549: Wrap setRequestHandler so the SDK's own list handlers
+  // automatically get caching hints appended to their responses.
+  const originalSetRequestHandler = mcpServer.server.setRequestHandler.bind(
+    mcpServer.server
+  );
+  const listSchemasForCaching = new Set([
+    ListToolsRequestSchema,
+    ListPromptsRequestSchema,
+    ListResourcesRequestSchema,
+    ListResourceTemplatesRequestSchema
+  ]);
+  mcpServer.server.setRequestHandler = ((schema: any, handler: any) => {
+    if (listSchemasForCaching.has(schema)) {
+      return originalSetRequestHandler(
+        schema,
+        async (...args: any[]) => {
+          const result = await handler(...args);
+          return { ...result, ttlMs: 300000, cacheScope: 'public' as const };
+        }
+      );
+    }
+    return originalSetRequestHandler(schema, handler);
+  }) as typeof mcpServer.server.setRequestHandler;
+
+  const registerResourceWithCacheHints = mcpServer.registerResource.bind(
+    mcpServer
+  );
+  mcpServer.registerResource = ((
+    name: string,
+    uriOrTemplate: string | ResourceTemplate,
+    config: any,
+    readCallback: any
+  ) =>
+    registerResourceWithCacheHints(
+      name,
+      uriOrTemplate as any,
+      config,
+      async (...args: any[]) => ({
+        ...(await readCallback(...args)),
+        ttlMs: 300000,
+        cacheScope: 'private' as const
+      })
+    )) as typeof mcpServer.registerResource;
 
   // Helper to send log messages using the underlying server
   function sendLog(
@@ -1028,134 +1071,9 @@ function createMcpServer() {
               _meta: tool._meta
             };
           }),
-        // SEP-2549: Caching hints
-        ttlMs: 300000,
-        cacheScope: 'public' as const
+        // Note: SEP-2549 caching hints are added automatically by the
+        // setRequestHandler wrapper above
       };
-    }
-  );
-
-  // ===== SEP-2549: Override list/read handlers to include caching hints =====
-
-  mcpServer.server.setRequestHandler(ListPromptsRequestSchema, async () => {
-    const registeredPrompts = (mcpServer as any)._registeredPrompts as Record<
-      string,
-      {
-        enabled: boolean;
-        title?: string;
-        description?: string;
-        argsSchema?: any;
-      }
-    >;
-
-    return {
-      prompts: Object.entries(registeredPrompts)
-        .filter(([, prompt]) => prompt.enabled)
-        .map(([name, prompt]) => ({
-          name,
-          title: prompt.title,
-          description: prompt.description
-        })),
-      ttlMs: 300000,
-      cacheScope: 'public' as const
-    };
-  });
-
-  mcpServer.server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    const registeredResources = (mcpServer as any)
-      ._registeredResources as Record<
-      string,
-      { enabled: boolean; name: string; metadata?: any }
-    >;
-
-    return {
-      resources: Object.entries(registeredResources)
-        .filter(([, res]) => res.enabled)
-        .map(([uri, res]) => ({
-          uri,
-          name: res.name,
-          ...res.metadata
-        })),
-      ttlMs: 300000,
-      cacheScope: 'public' as const
-    };
-  });
-
-  mcpServer.server.setRequestHandler(
-    ListResourceTemplatesRequestSchema,
-    async () => {
-      const registeredResourceTemplates = (mcpServer as any)
-        ._registeredResourceTemplates as Record<
-        string,
-        { resourceTemplate: any; metadata?: any }
-      >;
-
-      return {
-        resourceTemplates: Object.entries(registeredResourceTemplates).map(
-          ([name, template]) => ({
-            name,
-            uriTemplate: template.resourceTemplate.uriTemplate.toString(),
-            ...template.metadata
-          })
-        ),
-        ttlMs: 300000,
-        cacheScope: 'public' as const
-      };
-    }
-  );
-
-  mcpServer.server.setRequestHandler(
-    ReadResourceRequestSchema,
-    async (request: any) => {
-      const uri = new URL(request.params.uri);
-      const registeredResources = (mcpServer as any)
-        ._registeredResources as Record<
-        string,
-        {
-          enabled: boolean;
-          readCallback: (uri: URL, extra?: any) => Promise<any>;
-        }
-      >;
-      const registeredResourceTemplates = (mcpServer as any)
-        ._registeredResourceTemplates as Record<
-        string,
-        {
-          resourceTemplate: any;
-          readCallback: (
-            uri: URL,
-            variables: Record<string, string>,
-            extra?: any
-          ) => Promise<any>;
-        }
-      >;
-
-      // Exact resource match
-      const resource = registeredResources[uri.toString()];
-      if (resource && resource.enabled) {
-        const result = await resource.readCallback(uri);
-        return {
-          ...result,
-          ttlMs: 300000,
-          cacheScope: 'private' as const
-        };
-      }
-
-      // Template match
-      for (const template of Object.values(registeredResourceTemplates)) {
-        const variables = template.resourceTemplate.uriTemplate.match(
-          uri.toString()
-        );
-        if (variables) {
-          const result = await template.readCallback(uri, variables);
-          return {
-            ...result,
-            ttlMs: 300000,
-            cacheScope: 'private' as const
-          };
-        }
-      }
-
-      throw new Error(`Resource not found: ${uri}`);
     }
   );
 

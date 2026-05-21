@@ -164,6 +164,7 @@ Servers MUST include \`ttlMs\` (integer >= 0) and \`cacheScope\` ("public" or "p
       }
 
       // 3. resources/list
+      let firstResourceUri: string | undefined;
       try {
         const resourcesResult = await connection.client.request(
           { method: 'resources/list', params: {} },
@@ -181,6 +182,10 @@ Servers MUST include \`ttlMs\` (integer >= 0) and \`cacheScope\` ("public" or "p
             fields
           )
         );
+        // Capture the first resource URI for the resources/read check
+        if (resourcesResult.resources && resourcesResult.resources.length > 0) {
+          firstResourceUri = resourcesResult.resources[0].uri;
+        }
       } catch (error) {
         checks.push({
           id: 'sep-2549-resources-list-caching-hints',
@@ -225,38 +230,40 @@ Servers MUST include \`ttlMs\` (integer >= 0) and \`cacheScope\` ("public" or "p
         });
       }
 
-      // 5. resources/read — use test://static-text from resources/list
-      try {
-        const readResult = await connection.client.request(
-          {
-            method: 'resources/read',
-            params: { uri: 'test://static-text' }
-          },
-          ReadResourceResultSchema
-        );
-        const fields = extractCachingFields(
-          readResult as Record<string, unknown>
-        );
-        allFields.push({ endpoint: 'resources/read', fields });
-        checks.push(
-          buildPresenceCheck(
-            'sep-2549-resources-read-caching-hints',
-            'ResourcesReadCachingHints',
-            'resources/read',
-            fields
-          )
-        );
-      } catch (error) {
-        checks.push({
-          id: 'sep-2549-resources-read-caching-hints',
-          name: 'ResourcesReadCachingHints',
-          description:
-            'resources/read response includes ttlMs and cacheScope caching hints',
-          status: 'FAILURE',
-          timestamp: new Date().toISOString(),
-          errorMessage: `resources/read request failed: ${error instanceof Error ? error.message : String(error)}`,
-          specReferences: SPEC_REFS
-        });
+      // 5. resources/read — use first resource from resources/list
+      if (firstResourceUri) {
+        try {
+          const readResult = await connection.client.request(
+            {
+              method: 'resources/read',
+              params: { uri: firstResourceUri }
+            },
+            ReadResourceResultSchema
+          );
+          const fields = extractCachingFields(
+            readResult as Record<string, unknown>
+          );
+          allFields.push({ endpoint: 'resources/read', fields });
+          checks.push(
+            buildPresenceCheck(
+              'sep-2549-resources-read-caching-hints',
+              'ResourcesReadCachingHints',
+              'resources/read',
+              fields
+            )
+          );
+        } catch (error) {
+          checks.push({
+            id: 'sep-2549-resources-read-caching-hints',
+            name: 'ResourcesReadCachingHints',
+            description:
+              'resources/read response includes ttlMs and cacheScope caching hints',
+            status: 'FAILURE',
+            timestamp: new Date().toISOString(),
+            errorMessage: `resources/read request failed: ${error instanceof Error ? error.message : String(error)}`,
+            specReferences: SPEC_REFS
+          });
+        }
       }
 
       // 6. Aggregate: ttlMs must be a non-negative integer
