@@ -13,7 +13,6 @@ requirements:
     excluded: 'No longer needed this behavior is enabled by default SEP-2322 MRTR.'
     url: https://modelcontextprotocol.io/specification/draft/client/sampling
 
-
   - text: 'These messages MUST relate to the originating client request.'
     excluded: 'Semantic association ("relate to") is not protocol-observable. The harness cannot determine whether a server request conceptually relates to the client request without understanding application logic.'
   - text: 'Implementations SHOULD prefer transport-level SSE keepalive mechanisms for idle-connection maintenance.'
