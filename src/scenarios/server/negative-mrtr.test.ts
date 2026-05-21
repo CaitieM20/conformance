@@ -1,28 +1,17 @@
 /**
- * SEP-2322 MRTR positive tests.
+ * SEP-2322 MRTR negative tests.
  *
- * Runs all InputRequiredResult scenarios against the dedicated
- * sep-2322-mrtr-server (which uses the low-level Server class to return
- * resultType: "input_required").
+ * Positive tests run via all-scenarios.test.ts against the everything-server
+ * (which implements MRTR in its stateless path). These negative tests run
+ * against a deliberately broken server to verify checks emit FAILURE.
  */
 
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import {
-  InputRequiredResultBasicElicitationScenario,
-  InputRequiredResultBasicSamplingScenario,
-  InputRequiredResultBasicListRootsScenario,
-  InputRequiredResultRequestStateScenario,
-  InputRequiredResultMultipleInputRequestsScenario,
-  InputRequiredResultMultiRoundScenario,
-  InputRequiredResultMissingInputResponseScenario,
-  InputRequiredResultNonToolRequestScenario,
   InputRequiredResultResultTypeScenario,
   InputRequiredResultUnsupportedMethodsScenario,
-  InputRequiredResultTamperedStateScenario,
-  InputRequiredResultCapabilityCheckScenario,
-  InputRequiredResultIgnoreExtraParamsScenario,
-  InputRequiredResultValidateInputScenario
+  InputRequiredResultTamperedStateScenario
 } from './input-required-result';
 
 function startServer(scriptPath: string, port: number): Promise<ChildProcess> {
@@ -68,63 +57,6 @@ function stopServer(proc: ChildProcess | null): Promise<void> {
     proc.kill('SIGTERM');
   });
 }
-
-describe('SEP-2322 MRTR positive tests', () => {
-  let serverProcess: ChildProcess | null = null;
-  const PORT = 3010;
-  const SERVER_URL = `http://localhost:${PORT}/mcp`;
-
-  beforeAll(async () => {
-    serverProcess = await startServer(
-      path.join(
-        process.cwd(),
-        'examples/servers/typescript/sep-2322-mrtr-server.ts'
-      ),
-      PORT
-    );
-  }, 35000);
-
-  afterAll(async () => {
-    await stopServer(serverProcess);
-  });
-
-  const scenarios = [
-    new InputRequiredResultBasicElicitationScenario(),
-    new InputRequiredResultBasicSamplingScenario(),
-    new InputRequiredResultBasicListRootsScenario(),
-    new InputRequiredResultRequestStateScenario(),
-    new InputRequiredResultMultipleInputRequestsScenario(),
-    new InputRequiredResultMultiRoundScenario(),
-    new InputRequiredResultMissingInputResponseScenario(),
-    new InputRequiredResultNonToolRequestScenario(),
-    new InputRequiredResultResultTypeScenario(),
-    new InputRequiredResultUnsupportedMethodsScenario(),
-    new InputRequiredResultTamperedStateScenario(),
-    new InputRequiredResultCapabilityCheckScenario(),
-    new InputRequiredResultIgnoreExtraParamsScenario(),
-    new InputRequiredResultValidateInputScenario()
-  ];
-
-  for (const scenario of scenarios) {
-    it(
-      scenario.name,
-      async () => {
-        const checks = await scenario.run(SERVER_URL);
-
-        expect(checks.length).toBeGreaterThan(0);
-
-        const failures = checks.filter((c) => c.status === 'FAILURE');
-        if (failures.length > 0) {
-          const failureMessages = failures
-            .map((c) => `${c.name}: ${c.errorMessage || c.description}`)
-            .join('\n  ');
-          throw new Error(`Scenario failed with checks:\n  ${failureMessages}`);
-        }
-      },
-      15000
-    );
-  }
-});
 
 describe('SEP-2322 MRTR negative tests', () => {
   let serverProcess: ChildProcess | null = null;

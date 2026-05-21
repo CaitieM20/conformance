@@ -122,23 +122,6 @@ const pendingClientScenariosList: ClientScenario[] = [
   new HttpHeaderValidationScenario(),
   new HttpCustomHeaderServerValidationScenario(),
 
-  // InputRequiredResult scenarios (SEP-2322) — pending in the everything-server
-  // because McpServer.registerTool cannot return resultType: "input_required".
-  // These are tested against the dedicated sep-2322-mrtr-server instead.
-  new InputRequiredResultBasicElicitationScenario(),
-  new InputRequiredResultBasicSamplingScenario(),
-  new InputRequiredResultBasicListRootsScenario(),
-  new InputRequiredResultRequestStateScenario(),
-  new InputRequiredResultMultipleInputRequestsScenario(),
-  new InputRequiredResultMultiRoundScenario(),
-  new InputRequiredResultMissingInputResponseScenario(),
-  new InputRequiredResultNonToolRequestScenario(),
-  new InputRequiredResultResultTypeScenario(),
-  new InputRequiredResultUnsupportedMethodsScenario(),
-  new InputRequiredResultTamperedStateScenario(),
-  new InputRequiredResultCapabilityCheckScenario(),
-  new InputRequiredResultIgnoreExtraParamsScenario(),
-  new InputRequiredResultValidateInputScenario()
 ];
 
 // All client scenarios
