@@ -7,12 +7,24 @@
  */
 
 import { spawn, ChildProcess } from 'child_process';
+import { createServer } from 'net';
 import path from 'path';
 import {
   InputRequiredResultResultTypeScenario,
   InputRequiredResultUnsupportedMethodsScenario,
   InputRequiredResultTamperedStateScenario
 } from './input-required-result';
+
+function getFreePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.listen(0, () => {
+      const port = (server.address() as { port: number }).port;
+      server.close(() => resolve(port));
+    });
+    server.on('error', reject);
+  });
+}
 
 function startServer(scriptPath: string, port: number): Promise<ChildProcess> {
   return new Promise((resolve, reject) => {
@@ -60,16 +72,17 @@ function stopServer(proc: ChildProcess | null): Promise<void> {
 
 describe('SEP-2322 MRTR negative tests', () => {
   let serverProcess: ChildProcess | null = null;
-  const PORT = 3011;
-  const SERVER_URL = `http://localhost:${PORT}/mcp`;
+  let SERVER_URL: string;
 
   beforeAll(async () => {
+    const port = await getFreePort();
+    SERVER_URL = `http://localhost:${port}/mcp`;
     serverProcess = await startServer(
       path.join(
         process.cwd(),
         'examples/servers/typescript/sep-2322-mrtr-broken-server.ts'
       ),
-      PORT
+      port
     );
   }, 35000);
 
