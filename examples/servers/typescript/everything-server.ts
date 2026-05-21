@@ -1294,6 +1294,9 @@ app.post('/mcp', async (req, res) => {
               name: 'test_input_required_result_capabilities',
               description:
                 'MRTR: respects client capabilities in inputRequests',
+              inputSchema: { type: 'object', properties: {} }
+            },
+            {
               name: 'test_streaming_elicitation',
               description:
                 'Diagnostic tool validating response progress streams',
@@ -1838,6 +1841,21 @@ app.post('/mcp', async (req, res) => {
               ]
             }
           });
+        }
+        return res.json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            resultType: 'input_required',
+            inputRequests,
+            requestState: signMrtState({
+              kind: 'capabilities-test',
+              nonce: randomUUID()
+            })
+          }
+        });
+      }
+
       // Progressive IncompleteResult Stream Generator Handling
       if (name === 'test_streaming_elicitation') {
         res.writeHead(200, {
