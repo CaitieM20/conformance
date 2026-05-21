@@ -268,8 +268,11 @@ Servers MUST include \`ttlMs\` (integer >= 0) and \`cacheScope\` ("public" or "p
 
       // 6. Aggregate: ttlMs must be a non-negative integer
       const ttlErrors: string[] = [];
-      for (const { endpoint, fields } of allFields) {
-        if (fields.hasTtlMs) {
+      const endpointsWithTtl = allFields.filter((f) => f.fields.hasTtlMs);
+      if (endpointsWithTtl.length === 0) {
+        ttlErrors.push('no endpoints returned ttlMs');
+      } else {
+        for (const { endpoint, fields } of endpointsWithTtl) {
           const val = fields.ttlMs;
           if (typeof val !== 'number') {
             ttlErrors.push(
@@ -301,8 +304,13 @@ Servers MUST include \`ttlMs\` (integer >= 0) and \`cacheScope\` ("public" or "p
 
       // 7. Aggregate: cacheScope must be "public" or "private"
       const scopeErrors: string[] = [];
-      for (const { endpoint, fields } of allFields) {
-        if (fields.hasCacheScope) {
+      const endpointsWithScope = allFields.filter(
+        (f) => f.fields.hasCacheScope
+      );
+      if (endpointsWithScope.length === 0) {
+        scopeErrors.push('no endpoints returned cacheScope');
+      } else {
+        for (const { endpoint, fields } of endpointsWithScope) {
           const val = fields.cacheScope;
           if (val !== 'public' && val !== 'private') {
             scopeErrors.push(
