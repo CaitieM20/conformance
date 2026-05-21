@@ -120,33 +120,7 @@ const pendingClientScenariosList: ClientScenario[] = [
   // Pending until the everything-server fully implements SEP-2243
   // header validation (case-insensitive names, whitespace trimming, -32001 error code)
   new HttpHeaderValidationScenario(),
-  new HttpCustomHeaderServerValidationScenario(),
-  new ServerSSEPollingScenario(),
-
-  // HTTP Standardization (SEP-2243)
-  // Pending until the everything-server fully implements SEP-2243
-  // header validation (case-insensitive names, whitespace trimming, -32001 error code)
-  new HttpHeaderValidationScenario(),
-  new HttpCustomHeaderServerValidationScenario(),
-  new ServerSSEPollingScenario(),
-
-  // InputRequiredResult scenarios (SEP-2322) — pending in the everything-server
-  // because McpServer.registerTool cannot return resultType: "input_required".
-  // These are tested against the dedicated sep-2322-mrtr-server instead.
-  new InputRequiredResultBasicElicitationScenario(),
-  new InputRequiredResultBasicSamplingScenario(),
-  new InputRequiredResultBasicListRootsScenario(),
-  new InputRequiredResultRequestStateScenario(),
-  new InputRequiredResultMultipleInputRequestsScenario(),
-  new InputRequiredResultMultiRoundScenario(),
-  new InputRequiredResultMissingInputResponseScenario(),
-  new InputRequiredResultNonToolRequestScenario(),
-  new InputRequiredResultResultTypeScenario(),
-  new InputRequiredResultUnsupportedMethodsScenario(),
-  new InputRequiredResultTamperedStateScenario(),
-  new InputRequiredResultCapabilityCheckScenario(),
-  new InputRequiredResultIgnoreExtraParamsScenario(),
-  new InputRequiredResultValidateInputScenario()
+  new HttpCustomHeaderServerValidationScenario()
 ];
 
 // All client scenarios
@@ -210,12 +184,6 @@ const allClientScenariosList: ClientScenario[] = [
   // HTTP Standardization scenarios (SEP-2243)
   new HttpHeaderValidationScenario(),
   new HttpCustomHeaderServerValidationScenario(),
-  new DNSRebindingProtectionScenario(),
-
-  // HTTP Standardization scenarios (SEP-2243)
-  new HttpHeaderValidationScenario(),
-  new HttpCustomHeaderServerValidationScenario(),
-  new DNSRebindingProtectionScenario(),
 
   // InputRequiredResult scenarios (SEP-2322)
   new InputRequiredResultBasicElicitationScenario(),
