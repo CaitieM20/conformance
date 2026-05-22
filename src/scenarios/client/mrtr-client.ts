@@ -78,6 +78,8 @@ function createMRTRServer(checks: ConformanceCheck[]): express.Application {
 
   // Track original JSON-RPC ids per tool to verify they change on retry
   const originalIds = new Map<string, string | number>();
+  // Track the exact requestState string sent, to verify byte-exact echo on retry
+  const sentStates = new Map<string, string>();
 
   app.post('/mcp', (req: Request, res: Response) => {
     const body = req.body as JsonRpcRequest;
@@ -168,6 +170,7 @@ function createMRTRServer(checks: ConformanceCheck[]): express.Application {
         nonce: randomUUID(),
         originalId: id
       });
+      sentStates.set('echo_state', state);
       res.json({
         jsonrpc: '2.0',
         id,
@@ -195,27 +198,19 @@ function createMRTRServer(checks: ConformanceCheck[]): express.Application {
 
     // Retry — verify requestState was echoed back correctly
     const originalId = originalIds.get('echo_state');
+    const sentState = sentStates.get('echo_state');
 
-    // Check 1: requestState must be present and unchanged
+    // Check 1: requestState must be present and byte-for-byte identical to
+    // what the server sent. The spec requires the client to echo back the
+    // *exact value* without inspecting, parsing, or modifying it — so a
+    // semantically-equal but re-serialized string is still a failure.
     const stateErrors: string[] = [];
     if (!requestState) {
       stateErrors.push('Client did not include requestState in retry');
-    } else {
-      try {
-        const parsed = JSON.parse(requestState) as Record<string, unknown>;
-        if (parsed.originalId !== originalId) {
-          stateErrors.push(
-            `requestState was modified: originalId mismatch (expected ${originalId}, got ${parsed.originalId})`
-          );
-        }
-        if (!parsed.nonce) {
-          stateErrors.push('requestState was modified: nonce missing');
-        }
-      } catch {
-        stateErrors.push(
-          `requestState was modified or corrupted: cannot parse`
-        );
-      }
+    } else if (requestState !== sentState) {
+      stateErrors.push(
+        'requestState was not echoed back exactly — clients MUST NOT inspect, parse, or modify it'
+      );
     }
 
     checks.push({
@@ -228,6 +223,7 @@ function createMRTRServer(checks: ConformanceCheck[]): express.Application {
       errorMessage: stateErrors.length > 0 ? stateErrors.join('; ') : undefined,
       specReferences: MRTR_SPEC_REFERENCES,
       details: {
+        requestStateSent: sentState,
         requestStateReceived: requestState,
         originalId
       }
