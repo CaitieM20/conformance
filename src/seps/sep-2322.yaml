@@ -15,9 +15,6 @@ requirements:
     text: 'Servers MUST NOT send InputRequiredResult responses on any other client requests.'
 
   # ── Server Requirements (Basic Workflow) ───────────────────────────────────
-  - check: sep-2322-multiple-inputs-incomplete
-    text: 'inputRequests keys are server assigned identifiers and MUST be unique within the scope of the request.'
-
   - check: sep-2322-elicitation-incomplete
     text: 'inputRequests values are request objects that MUST be one of ElicitRequest, CreateMessageRequest, or ListRootsRequest (elicitation variant)'
 
@@ -49,50 +46,11 @@ requirements:
   - check: sep-2322-client-parallel-isolation
     text: "Both the inputRequests and requestState fields affect only the client's retry of the original request. They MUST NOT be used for any other request that the client may be sending in parallel."
 
-  # ── Scenario flow gates (non-normative) ───────────────────────────────────
-  # These checks verify the MRTR flow works end-to-end but are not direct
-  # RFC-2119 sentences from the spec. They serve as conformance test gates.
-  - check: sep-2322-elicitation-complete
-    text: 'Server returns complete result after retry with inputResponses (elicitation)'
-    note: 'Scenario gate — verifies end-to-end flow, not a standalone normative requirement'
-
-  - check: sep-2322-sampling-complete
-    text: 'Server returns complete result after retry with inputResponses (sampling)'
-    note: 'Scenario gate — verifies end-to-end flow, not a standalone normative requirement'
-
-  - check: sep-2322-list-roots-complete
-    text: 'Server returns complete result after retry with inputResponses (list roots)'
-    note: 'Scenario gate — verifies end-to-end flow, not a standalone normative requirement'
-
-  - check: sep-2322-request-state-complete
-    text: 'Server returns complete result after retry with requestState echoed back'
-    note: 'Scenario gate — verifies end-to-end flow, not a standalone normative requirement'
-
-  - check: sep-2322-multiple-inputs-complete
-    text: 'Server returns complete result after retry with multiple inputResponses'
-    note: 'Scenario gate — verifies end-to-end flow, not a standalone normative requirement'
-
-  # ── Multi-Round Flow ───────────────────────────────────────────────────────
-  - check: sep-2322-multi-round-r1
-    text: 'Server returns InputRequiredResult on first round of multi-round flow'
-    note: 'Scenario gate — verifies multi-round pattern works'
-
-  - check: sep-2322-multi-round-r2
-    text: 'Server returns InputRequiredResult on second round (re-requesting with new requestState)'
-    note: 'Scenario gate — verifies multi-round pattern works'
-
-  - check: sep-2322-multi-round-r3
-    text: 'Server returns complete result on third round of multi-round flow'
-    note: 'Scenario gate — verifies multi-round pattern works'
-
-  # ── Non-Tool Request (prompts/get) ─────────────────────────────────────────
-  - check: sep-2322-non-tool-incomplete
-    text: 'Server returns InputRequiredResult on prompts/get request'
-    note: 'Scenario gate — verifies MRTR works on non-tool requests'
-
-  - check: sep-2322-non-tool-complete
-    text: 'Server returns complete GetPromptResult after retry with inputResponses'
-    note: 'Scenario gate — verifies MRTR works on non-tool requests'
+  # Scenario flow gates (sep-2322-*-complete, sep-2322-multi-round-r*,
+  # sep-2322-non-tool-*, sep-2322-multiple-inputs-incomplete) intentionally
+  # have no rows here: they verify the end-to-end MRTR flow rather than a
+  # specific RFC-2119 sentence, so they surface in the traceability manifest's
+  # `untracked` list instead of claiming requirement coverage.
 
   # ── Error Handling ─────────────────────────────────────────────────────────
   - check: sep-2322-validate-input-responses
@@ -108,6 +66,9 @@ requirements:
     text: 'If the client fails to send all the information requested in a previous InputRequests, and the missing information is necessary for the server to process the request, the server SHOULD respond with a new InputRequiredResult requesting the missing information again, rather than returning an error.'
 
   # ── Excluded requirements ──────────────────────────────────────────────────
+
+  - text: 'inputRequests keys are server assigned identifiers and MUST be unique within the scope of the request.'
+    excluded: 'inputRequests is a JSON object; duplicate keys are collapsed by JSON parsing before the harness can observe them, so key uniqueness is not testable at the protocol level'
 
   - text: 'Servers MUST send server-to-client requests (such as roots/list, sampling/createMessage, or elicitation/create) using the MRTR pattern.'
     excluded: 'Architectural migration statement; tested indirectly through all MRTR scenarios'
