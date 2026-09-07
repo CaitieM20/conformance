@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "docs": "https://github.com/modelcontextprotocol/conformance/blob/main/AGENTS.md#traceability-manifest",
-  "source": "typescript-sdk@4e153aef0538",
+  "source": "typescript-sdk@5119ee7fd779",
   "seps": {
     "837": {
       "yaml": "src/seps/sep-837.yaml",
@@ -75,21 +75,40 @@
       }
     },
     "2207": {
-      "yaml": null,
-      "specUrl": null,
-      "requirements": [],
-      "excluded": [],
+      "yaml": "src/seps/sep-2207.yaml",
+      "specUrl": "https://modelcontextprotocol.io/specification/draft/basic/authorization#refresh-tokens",
+      "requirements": [
+        {
+          "check": "sep-2207-client-metadata-grant-types",
+          "status": "tested",
+          "text": "MCP Clients that desire refresh tokens SHOULD include `refresh_token` in their `grant_types` client metadata"
+        },
+        {
+          "check": "sep-2207-server-no-offline-access",
+          "status": "untested",
+          "text": "MCP Servers (Protected Resources) SHOULD NOT include `offline_access` in `WWW-Authenticate` scope or Protected Resource Metadata `scopes_supported`, as refresh tokens are not a resource requirement"
+        }
+      ],
+      "excluded": [
+        {
+          "text": "MCP Clients that desire refresh tokens MUST keep refresh tokens confidential in transit and storage as specified in OAuth 2.1 Section 4.3",
+          "reason": "Confidentiality of refresh tokens in storage is client-internal state, and in-transit (TLS) confidentiality is not exercised by the harness over localhost HTTP; not protocol-observable"
+        },
+        {
+          "text": "MCP Clients that desire refresh tokens MUST NOT assume refresh tokens will be issued; the AS retains discretion",
+          "reason": "A client \"assuming\" refresh tokens will be issued is mental-state; only manifests as general authorization-flow completion, which other checks already cover; not directly protocol-observable"
+        }
+      ],
       "unkeyed": [],
       "untracked": [
-        "sep-2207-client-metadata-grant-types",
         "sep-2207-offline-access-not-requested",
         "sep-2207-offline-access-requested"
       ],
       "summary": {
-        "tested": 0,
-        "untested": 0,
-        "excluded": 0,
-        "untracked": 3,
+        "tested": 1,
+        "untested": 1,
+        "excluded": 2,
+        "untracked": 2,
         "unkeyed": 0
       }
     },
@@ -223,16 +242,23 @@
       ],
       "unkeyed": [],
       "untracked": [
-        "sep-2243-invalid-tool-tools-list-gate",
         "sep-2243-param-header-tool-call-gate",
+        "sep-2243-server-accepts-valid-base64",
         "sep-2243-server-accepts-whitespace-header-value",
-        "sep-2243-server-no-xmcp-tool"
+        "sep-2243-server-literal-missing-base64-prefix",
+        "sep-2243-server-literal-missing-base64-suffix",
+        "sep-2243-server-rejects-invalid-base64-chars",
+        "sep-2243-server-rejects-invalid-base64-chars-error-code",
+        "sep-2243-server-rejects-invalid-base64-padding",
+        "sep-2243-server-rejects-invalid-base64-padding-error-code",
+        "sep-2243-server-rejects-missing-custom-header",
+        "sep-2243-server-rejects-missing-custom-header-error-code"
       ],
       "summary": {
         "tested": 6,
         "untested": 14,
         "excluded": 4,
-        "untracked": 4,
+        "untracked": 11,
         "unkeyed": 0
       }
     },
@@ -381,7 +407,7 @@
       "requirements": [
         {
           "check": "sep-2575-client-populates-meta",
-          "status": "untested",
+          "status": "tested",
           "text": "Every client request MUST include the following io.modelcontextprotocol/* fields in _meta: protocolVersion, clientInfo, clientCapabilities.",
           "url": "https://modelcontextprotocol.io/specification/draft/basic/index#meta"
         },
@@ -421,7 +447,7 @@
         },
         {
           "check": "sep-2575-client-retry-supported-version",
-          "status": "untested",
+          "status": "tested",
           "text": "The client SHOULD select a mutually supported version from the supported list and retry the request, or surface an error to the user if no compatible version exists.",
           "url": "https://modelcontextprotocol.io/specification/draft/basic/lifecycle#protocol-version-negotiation"
         },
@@ -451,13 +477,13 @@
         },
         {
           "check": "sep-2575-http-client-sends-version-header",
-          "status": "untested",
+          "status": "tested",
           "text": "Every POST request to the MCP endpoint MUST include an MCP-Protocol-Version header.",
           "url": "https://modelcontextprotocol.io/specification/draft/basic/transports#protocol-version-header"
         },
         {
           "check": "sep-2575-http-version-header-matches-meta",
-          "status": "untested",
+          "status": "tested",
           "text": "The header value MUST match the io.modelcontextprotocol/protocolVersion field carried in the request body _meta.",
           "url": "https://modelcontextprotocol.io/specification/draft/basic/transports#protocol-version-header"
         },
@@ -493,19 +519,19 @@
         },
         {
           "check": "sep-2575-client-declares-elicitation-capability",
-          "status": "untested",
+          "status": "tested",
           "text": "Clients that support elicitation MUST declare the elicitation capability in _meta.io.modelcontextprotocol/clientCapabilities on each request.",
           "url": "https://modelcontextprotocol.io/specification/draft/client/elicitation#capabilities"
         },
         {
           "check": "sep-2575-client-declares-roots-capability",
-          "status": "untested",
+          "status": "tested",
           "text": "Clients that support roots MUST declare the roots capability in _meta.io.modelcontextprotocol/clientCapabilities on each request.",
           "url": "https://modelcontextprotocol.io/specification/draft/client/roots#capabilities"
         },
         {
           "check": "sep-2575-client-declares-sampling-capability",
-          "status": "untested",
+          "status": "tested",
           "text": "Clients that support sampling MUST declare the sampling capability in _meta.io.modelcontextprotocol/clientCapabilities on each request.",
           "url": "https://modelcontextprotocol.io/specification/draft/client/sampling#capabilities"
         },
@@ -587,8 +613,8 @@
         "sep-2575-request-meta-invalid-missing-protocol-version"
       ],
       "summary": {
-        "tested": 8,
-        "untested": 18,
+        "tested": 15,
+        "untested": 11,
         "excluded": 9,
         "untracked": 11,
         "unkeyed": 0
